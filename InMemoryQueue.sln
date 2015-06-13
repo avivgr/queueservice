@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\Server.vcxproj", "{9F712343-5D37-46D3-B96C-37EEF4EEEFC6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{33066374-88CB-CB8D-15DA-61032886329A} = {33066374-88CB-CB8D-15DA-61032886329A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libuv", "External\libuv-1.x\libuv.vcxproj", "{33066374-88CB-CB8D-15DA-61032886329A}"
 EndProject
