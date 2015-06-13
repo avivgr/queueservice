@@ -1,0 +1,63 @@
+/* Create queue */
+enum Status
+{
+	SUCCESS = 0;
+	NO_MEM = 1;
+	BUSY = 2;	
+}
+
+message CreateQueueRequest {
+  required string name = 1;
+}
+
+message CreateQueueResponse {
+  required string queueid = 1;
+}
+
+/* Get queue */
+message GetQueueRequest {
+  required string name = 1;
+}
+
+message GetQueueResponse {
+  required string queueid = 1;
+}
+
+/* delete queue */
+message DelQueueRequest {
+  required string queueid = 1;
+}
+
+message DelQueueResponse {
+  required Status status = 1;
+}
+
+/* Enqueue */
+message EnqueueRequest {
+  required string queueid = 1;
+  required bytes data = 2;
+}
+
+/* Read */
+message ReadRequest {
+  required string queueid = 1;
+  required int32 timeout = 2;
+}
+
+message ReadResponse {
+  required string queueid = 1;
+  required string queueentitiyid = 2;
+  required bytes data = 3;
+}
+
+/* Dequeue */
+message DequeueRequest {
+  required string queueid = 1;
+  required string queueentitiyid = 2;
+}
+
+message DequeueResponse {
+    required Status status = 1;
+}
+
+
