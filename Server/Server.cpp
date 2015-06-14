@@ -34,6 +34,7 @@ typedef struct {
 	unsigned int idle_timeout;
 	uv_tcp_t tcp_handle;
 	uv_loop_t *loop;
+	QueueService *qs;
 } server_ctx;
 
 /* A connection is modeled as an abstraction on top of two simple state
@@ -78,28 +79,38 @@ typedef struct {
 	uv_timer_t timer_handle;
 	uv_write_t write_req;
 	uv_req_t req;
+	/* req buffer */
+	uint16_t req_size; /* total req size */
+
+	/* response buffer */
+	uint16_t resp_size;
+	char resp_buf[2048];
+
+	int offset;
 	char buf[2048];
 } conn;
 
-/* Protocol parsing:
+/* Protocol parsing state machine:
 
-	read_size - read 2 bytes specifying the request expected data size in bytes.
-	            we need to delianate data so we can feed it into protobuf.
-	read_request - read request data, we read n bytes based on read_size.
+	read_size		- read 2 bytes specifying the request expected data size in bytes.
+					  we need to delianate data so we can feed it into protobuf.
+	read_request	- read request data, we read n bytes based on read_size.
 	process_request - let a worker thread process the request, and produce a response
-	write_response - write the response back to the client
+	write_response	- write the response back to the client.
+	dead			- error state
 */
 enum protocol_state
 {
-	read_size = 1,
-	read_request = 2,
-	process_request = 3,
-	write_response = 4
+	s_read_size = 1,
+	s_read_request = 2,
+	s_process_request = 3,
+	s_write_response = 4,
+	s_dead = 5
 };
 
 typedef struct client_ctx
 {
-	protocol_state state;
+	int state;
 	server_ctx *sx;  /* Backlink to owning server context. */
 	conn incoming;  /* Connection with the client. */
 } client_ctx;
@@ -112,45 +123,184 @@ typedef struct
 	uv_loop_t *loop;
 } server_state;
 
+static void buff_pull(conn *c)
+{
+	ssize_t free = c->req_size + 2;
+	ASSERT(c->offset >= free);
 
-static void do_next(client_ctx *cx) {
+	memmove(c->buf, c->buf + free, c->offset - free);
+	c->offset -= free;
+}
+
+static void conn_close(conn *c);
+static void conn_read(conn *c);
+static int do_kill(client_ctx *cx) 
+{
+	conn_close(&cx->incoming);
+	
+	return s_dead;
+}
+
+static void write_reponse_done(uv_write_t *req, int status) 
+{
+	conn *c;
+
+	c = CONTAINER_OF(req, conn, write_req);
+	
+	if (status) {
+		pr_err("Write error %s\n", uv_strerror(status));
+	}
+	buff_pull(c);	
+}
+
+static int do_process_request(client_ctx *cx)
+{
+	conn *incoming;
+	Request r;
+	Response resp;
+
+	incoming = &cx->incoming;
+	//ASSERT(incoming->rdstate == c_done);
+	ASSERT(incoming->wrstate == c_stop);
+
+	r.ParseFromArray(incoming->buf + 2, incoming->req_size);
+
+	switch (r.type())
+	{
+	case Request::CREATE_QUEUE: 
+		{
+			CreateQueueResponse *create = new CreateQueueResponse();
+			std::string queueid = cx->sx->qs->CreateQueue(r.createqueue().name());
+			create->set_queueid(queueid);
+			resp.set_type(Response::CREATE_QUEUE);
+			resp.set_allocated_createqueue(create);
+		}
+		break;		
+	case Request::GET_QUEUE:
+		{
+			GetQueueResponse *get = new GetQueueResponse();
+			std::string queueid = cx->sx->qs->GetQueue(r.getqueue().name());
+			get->set_queueid(queueid);
+			resp.set_type(Response::GET_QUEUE);
+			resp.set_allocated_getqueue(get);
+		}
+		break;
+	case Request::DEL_QUEUE:
+		{
+			DelQueueResponse *del = new DelQueueResponse();
+			cx->sx->qs->DeleteQueue(r.delqueue().queueid());
+			del->set_status(SUCCESS);
+			resp.set_type(Response::DEL_QUEUE);
+			resp.set_allocated_delqueue(del);
+		}
+		break;
+	case Request::ENQUEUE:
+		{
+			EnqueueResponse *enqueue = new EnqueueResponse();
+			cx->sx->qs->enqueue(r.enqueue().queueid(),
+				r.enqueue().data().c_str(), r.enqueue().data().length());
+			enqueue->set_status(SUCCESS);
+			resp.set_type(Response::ENQUEUE);
+			resp.set_allocated_enqueue(enqueue);
+		}
+		break;
+	case Request::READ:
+		{
+			ReadResponse *read = new ReadResponse();
+			*read = cx->sx->qs->read(r.read().queueid(), r.read().timeout());			
+			resp.set_type(Response::READ);
+			resp.set_allocated_read(read);
+		}
+		break;
+	case Request::DEQUEUE:
+		{
+			DequeueResponse *dequeue = new DequeueResponse();
+			cx->sx->qs->dequeue(r.dequeue().queueid(),
+				r.dequeue().queueentitiyid());
+			dequeue->set_status(SUCCESS);
+			resp.set_type(Response::DEQUEUE);
+			resp.set_allocated_dequeue(dequeue);
+		}
+		break;
+	}
+
+	*((uint16_t *)(&incoming->resp_buf)) = htons(resp.ByteSize());
+	resp.SerializeToArray(&incoming->resp_buf[2], sizeof(incoming->resp_buf)-2);
+	uv_buf_t wrbuf = uv_buf_init(incoming->resp_buf, resp.ByteSize()+2);
+	uv_write(&incoming->write_req, &incoming->handle.stream, &wrbuf, 1, write_reponse_done);
+	
+	return s_write_response;
+}
+
+static int do_read_request(client_ctx *cx)
+{
+	conn *incoming;
+	size_t size;
+
+	incoming = &cx->incoming;
+	//ASSERT(incoming->rdstate == c_done);
+	ASSERT(incoming->wrstate == c_stop);
+	incoming->rdstate = c_stop;
+
+	if (incoming->result < 0) {
+		pr_err("read error: %s", uv_strerror(incoming->result));
+		return do_kill(cx);
+	}
+
+	size = (size_t)incoming->offset;
+
+	if (size >= (size_t)incoming->req_size + 2) {		
+		return do_process_request(cx);
+	}
+	else {		
+		conn_read(incoming);
+	}
+
+	return s_read_request;
+}
+
+static int do_read_size(client_ctx *cx)
+{
+	conn *incoming;	
+	uint8_t *data;
+	size_t size;
+	
+	incoming = &cx->incoming;
+	ASSERT(incoming->rdstate == c_done);
+	ASSERT(incoming->wrstate == c_stop);
+	incoming->rdstate = c_stop;
+
+	if (incoming->result < 0) {
+		pr_err("read error: %s", uv_strerror(incoming->result));
+		return do_kill(cx);
+	}
+
+	data = (uint8_t *)incoming->buf;
+	size = (size_t)incoming->offset;
+
+	if (size >= 2) {
+		incoming->req_size = ntohs(*((uint16_t *)data));
+		if (incoming->req_size > sizeof(incoming->buf)) {
+			pr_err("read error: %d req size", incoming->req_size);
+			return do_kill(cx);
+		}
+		return do_read_request(cx);
+	}
+	else {		
+		conn_read(incoming);
+	}
+
+	return s_read_size;
+}
+
+static void do_next(client_ctx *cx)
+{
 	int new_state;
-#if 0
+
 	ASSERT(cx->state != s_dead);
 	switch (cx->state) {
-	case s_handshake:
-		new_state = do_handshake(cx);
-		break;
-	case s_handshake_auth:
-		new_state = do_handshake_auth(cx);
-		break;
-	case s_req_start:
-		new_state = do_req_start(cx);
-		break;
-	case s_req_parse:
-		new_state = do_req_parse(cx);
-		break;
-	case s_req_lookup:
-		new_state = do_req_lookup(cx);
-		break;
-	case s_req_connect:
-		new_state = do_req_connect(cx);
-		break;
-	case s_proxy_start:
-		new_state = do_proxy_start(cx);
-		break;
-	case s_proxy:
-		new_state = do_proxy(cx);
-		break;
-	case s_kill:
-		new_state = do_kill(cx);
-		break;
-	case s_almost_dead_0:
-	case s_almost_dead_1:
-	case s_almost_dead_2:
-	case s_almost_dead_3:
-	case s_almost_dead_4:
-		new_state = do_almost_dead(cx);
+	case s_read_size:
+		new_state = do_read_size(cx);
 		break;
 	default:
 		UNREACHABLE();
@@ -163,11 +313,6 @@ static void do_next(client_ctx *cx) {
 		}
 		free(cx);
 	}
-#endif
-}
-
-static int do_handshake(client_ctx *cx) {
-
 }
 
 static void conn_close_done(uv_handle_t *handle)
@@ -178,7 +323,8 @@ static void conn_close_done(uv_handle_t *handle)
 	do_next(c->client);
 }
 
-static void conn_close(conn *c) {
+static void conn_close(conn *c) 
+{
 	ASSERT(c->rdstate != c_dead);
 	ASSERT(c->wrstate != c_dead);
 	c->rdstate = c_dead;
@@ -189,20 +335,13 @@ static void conn_close(conn *c) {
 	uv_close((uv_handle_t *)&c->timer_handle, conn_close_done);
 }
 
-static int do_kill(client_ctx *cx)
-{
-
-	conn_close(&cx->incoming);
-	return 0;
-}
-
 static void conn_timer_expire(uv_timer_t *handle)
 {
 	conn *c;
 
 	c = CONTAINER_OF(handle, conn, timer_handle);
 	c->result = UV_ETIMEDOUT;
-	do_next(c->client);
+//	do_next(c->client);
 }
 
 static void conn_timer_reset(conn *c)
@@ -213,18 +352,21 @@ static void conn_timer_reset(conn *c)
 		0));
 }
 
-static void conn_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+static void conn_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf)
+{
 	conn *c;
 
 	c = CONTAINER_OF(handle, conn, handle);
 	ASSERT(c->rdstate == c_busy);
-	buf->base = c->buf;
-	buf->len = sizeof(c->buf);
+	ASSERT(c->offset < sizeof(c->buf));
+	buf->base = c->buf + c->offset;
+	buf->len = sizeof(c->buf) - c->offset;
 }
 
 static void conn_read_done(uv_stream_t *handle,
 	ssize_t nread,
-	const uv_buf_t *buf) {
+	const uv_buf_t *buf) 
+{
 	conn *c;
 
 	c = CONTAINER_OF(handle, conn, handle);
@@ -232,6 +374,8 @@ static void conn_read_done(uv_stream_t *handle,
 	ASSERT(c->rdstate == c_busy);
 	c->rdstate = c_done;
 	c->result = nread;
+	if (nread > 0)
+		c->offset += nread;
 
 	uv_read_stop(&c->handle.stream);
 	do_next(c->client);
@@ -285,13 +429,15 @@ void client_finish_init(server_ctx *sx, client_ctx *cx)
 	conn *incoming;
 
 	cx->sx = sx;
-	cx->state = read_size;
+	cx->state = s_read_size;
 
-	incoming = &cx->incoming;
+	incoming = &cx->incoming;	
 	incoming->client = cx;
 	incoming->result = 0;
 	incoming->rdstate = c_stop;
 	incoming->wrstate = c_stop;
+	incoming->offset = 0;
+	incoming->req_size = 0;
 	CHECK(0 == uv_timer_init(sx->loop, &incoming->timer_handle));
 
 	/* Wait for the initial packet. */
@@ -389,6 +535,7 @@ static void do_bind(uv_getaddrinfo_t *req, int status, struct addrinfo *addrs)
 		sx = state->servers + n;
 		sx->loop = loop;
 		sx->idle_timeout = state->config.idle_timeout;
+		sx->qs = new QueueService();
 		CHECK(0 == uv_tcp_init(loop, &sx->tcp_handle));
 
 		what = "uv_tcp_bind";
@@ -466,7 +613,7 @@ static void usage(char *progname) {
 		"Options:\n"
 		"\n"
 		"  -b <hostname|address>  Bind to this address or hostname.\n"
-		"                         Default: \"127.0.0.1\"\n"
+		"                         Default: \"0.0.0.0\"\n"
 		"  -h                     Show this help message.\n"
 		"  -p <port>              Bind to this port number.  Default: 1080\n"
 		"",

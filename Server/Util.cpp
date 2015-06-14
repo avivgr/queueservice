@@ -41,5 +41,5 @@ static void pr_do(FILE *stream,
 	va_list ap) {
 	char fmtbuf[1024];
 	vsnprintf(fmtbuf, sizeof(fmtbuf), fmt, ap);
-	fprintf(stream, "%s:%s: %s\n", __FILE__, label, fmtbuf);
+	fprintf(stream, "%s:%s: %s\n", "server", label, fmtbuf);
 }

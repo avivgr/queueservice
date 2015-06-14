@@ -11,7 +11,7 @@ QueueService::~QueueService()
 	uv_rwlock_destroy(&m_lock);
 }
 
-std::string QueueService::CreateQueue(std::string &name)
+std::string QueueService::CreateQueue(std::string name)
 {
 	std::string queueid;
 	std::map<std::string, std::string>::iterator it;
@@ -35,7 +35,7 @@ std::string QueueService::CreateQueue(std::string &name)
 	return queueid;
 }
 
-std::string QueueService::GetQueue(std::string &name)
+std::string QueueService::GetQueue(std::string name)
 {
 	std::string queueid = "-1";
 	std::map<std::string, std::string>::iterator it;
@@ -50,7 +50,7 @@ std::string QueueService::GetQueue(std::string &name)
 	return queueid;
 }
 
-void QueueService::DeleteQueue(std::string &queueid)
+void QueueService::DeleteQueue(std::string queueid)
 {
 	std::map<std::string, std::string>::iterator it;
 	std::map<std::string, Queue *>::iterator it2;
@@ -68,7 +68,7 @@ void QueueService::DeleteQueue(std::string &queueid)
 	uv_rwlock_wrunlock(&m_lock);
 }
 
-void QueueService::enqueue(std::string &queueid, char *object, size_t len)
+void QueueService::enqueue(std::string queueid, const char *object, size_t len)
 {
 	std::map<std::string, Queue *>::iterator it;
 
@@ -81,7 +81,7 @@ void QueueService::enqueue(std::string &queueid, char *object, size_t len)
 	uv_rwlock_rdunlock(&m_lock);
 }
 
-ReadResponse QueueService::read(std::string &queueid, uint32_t timeout)
+ReadResponse QueueService::read(std::string queueid, uint32_t timeout)
 {
 	std::map<std::string, Queue *>::iterator it;
 	ReadResponse resp;
@@ -97,7 +97,7 @@ ReadResponse QueueService::read(std::string &queueid, uint32_t timeout)
 	return resp;
 }
 
-DequeueResponse QueueService::dequeue(std::string &queueid, const std::string &QueueEntityId)
+DequeueResponse QueueService::dequeue(std::string queueid, const std::string &QueueEntityId)
 {
 	std::map<std::string, Queue *>::iterator it;
 	DequeueResponse resp;

@@ -14,7 +14,7 @@ Queue::~Queue()
 	uv_mutex_destroy(&m_readlock);
 }
 
-Queue::Element::Element(char *object, size_t len)
+Queue::Element::Element(const char *object, size_t len)
 {
 	m_data = new char[len];
 	m_size = len;
@@ -26,7 +26,7 @@ Queue::Element::~Element()
 	delete[] m_data;
 }
 
-void Queue::enqueue(char *object, size_t len)
+void Queue::enqueue(const char *object, size_t len)
 {
 	Element *e = new Element(object, len);
 

@@ -17,7 +17,7 @@ class Queue
 		char  *m_data;
 		size_t m_size;
 	public:
-		Element(char *data, size_t len);
+		Element(const char *data, size_t len);
 		~Element();
 
 		char *data() { return m_data; }
@@ -61,7 +61,7 @@ public:
 	void timer_expire_cb();
 
 	// Enqueue the object into the queue
-	virtual void enqueue(char *object, size_t len);
+	virtual void enqueue(const char *object, size_t len);
 
 	// Read an object from the queue.
 	// This object will not be returned as a response to
