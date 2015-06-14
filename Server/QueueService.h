@@ -2,7 +2,6 @@
 
 #include <string>
 #include <list>
-#include <atomic>
 #include <map>
 #include <queue>
 #include <ctime>

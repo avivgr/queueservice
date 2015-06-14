@@ -2,7 +2,6 @@
 
 #include <string>
 #include <list>
-#include <atomic>
 #include <map>
 #include <queue>
 #include <ctime>
@@ -30,7 +29,7 @@ class Queue
 		time_t m_expire;
 		std::string m_elementid;
 	public:
-		ExpirationEntry(time_t expire, std::string &elementid)
+		ExpirationEntry(time_t expire, std::string elementid)
 			: m_expire(expire), m_elementid(elementid) { }
 
 		time_t expire() const { return m_expire; }
