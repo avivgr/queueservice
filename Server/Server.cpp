@@ -8,6 +8,7 @@
 
 #include "../Common/QueueService.pb.h"
 #include "Queue.h"
+#include "QueueService.h"
 
 #define DEFAULT_PORT 7000
 #define DEFAULT_BACKLOG 128
@@ -87,26 +88,27 @@ int main() {
 int main(int argc, char* argv[])
 {
 	std::string name("myqueue");
-	std::string id("100");
-	Queue *q = new Queue(id, name);
+	std::string id;
+	QueueService *s = new QueueService();
+	id = s->CreateQueue(name);
 
-	q->enqueue("aviv1", 5);
-	q->enqueue("aviv2", 5);
-	q->enqueue("aviv3", 5);
-	q->enqueue("aviv4", 5);
-	q->enqueue("aviv5", 5);
-	q->enqueue("aviv6", 5);
+	s->enqueue(id, "aviv1", 5);
+	s->enqueue(id, "aviv2", 5);
+	s->enqueue(id, "aviv3", 5);
+	s->enqueue(id, "aviv4", 5);
+	s->enqueue(id, "aviv5", 5);
+	s->enqueue(id, "aviv6", 5);
 
-	auto r1 = q->read(10);
-	auto r2 = q->read(9);
-	auto r3 = q->read(1);
-	auto r4 = q->read(3);
+	auto r1 = s->read(id, 10);
+	auto r2 = s->read(id, 9);
+	auto r3 = s->read(id, 1);
+	auto r4 = s->read(id, 3);
 
-	Sleep(3000);
-	q->timer_expire_cb();
+	//Sleep(3000);
+	//q->timer_expire_cb();
 
-	q->dequeue(r1.queueentitiyid());
-	q->dequeue("garbage");
+	s->dequeue(id, r1.queueentitiyid());
+	s->dequeue(id, "garbage");
 
 	return 0;
 }

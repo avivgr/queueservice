@@ -23,7 +23,9 @@ std::string QueueService::CreateQueue(std::string &name)
 		queueid = it->second;
 	} else {
 		/* Create a new queue */
-		queueid = m_id++;
+		std::stringstream queueidss;
+		queueidss << m_id++;
+		queueid = queueidss.str();
 		Queue *q = new Queue(queueid, name);
 		m_idToQ[queueid] = q;
 		m_nameToId[name] = queueid;
