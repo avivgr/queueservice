@@ -86,7 +86,9 @@ int main() {
 #else 
 int main(int argc, char* argv[])
 {
-	Queue *q = new Queue();
+	std::string name("myqueue");
+	std::string id("100");
+	Queue *q = new Queue(id, name);
 
 	q->enqueue("aviv1", 5);
 	q->enqueue("aviv2", 5);

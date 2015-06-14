@@ -42,6 +42,7 @@ class Queue
 	};
 
 	std::string m_queueid;
+	std::string m_name;
 	uv_mutex_t m_lock;
 	size_t m_max_mem;
 	size_t m_current_mem;
@@ -52,8 +53,11 @@ class Queue
 	std::map<std::string, Element *> m_read;
 
 public:
-	Queue();
+	Queue(std::string &queueid, std::string &name);
 	virtual ~Queue();
+
+	std::string name() const { return m_name; }
+	std::string id() const { return m_queueid; }
 
 	void timer_expire_cb();
 

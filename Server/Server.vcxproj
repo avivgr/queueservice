@@ -86,11 +86,13 @@
   <ItemGroup>
     <ClCompile Include="..\Common\QueueService.pb.cc" />
     <ClCompile Include="Queue.cpp" />
+    <ClCompile Include="QueueService.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\QueueService.pb.h" />
     <ClInclude Include="Queue.h" />
+    <ClInclude Include="QueueService.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,8 @@
 #include "Queue.h"
 
 
-Queue::Queue()
+Queue::Queue(std::string &queueid, std::string &name)
+	: m_queueid(queueid), m_name(name)
 {
 	uv_mutex_init(&m_lock);
 	uv_mutex_init(&m_readlock);
