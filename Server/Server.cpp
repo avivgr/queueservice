@@ -105,7 +105,9 @@ enum protocol_state
 	s_read_request = 2,
 	s_process_request = 3,
 	s_write_response = 4,
-	s_dead = 5
+	s_almost_dead_0 = 5,
+	s_almost_dead_1 = 6,
+	s_dead = 7
 };
 
 typedef struct client_ctx
@@ -128,29 +130,26 @@ static void buff_pull(conn *c)
 	ssize_t free = c->req_size + 2;
 	ASSERT(c->offset >= free);
 
-	memmove(c->buf, c->buf + free, c->offset - free);
+	if (c->offset > free) {
+		memmove(c->buf, c->buf + free, c->offset - free);
+	}
 	c->offset -= free;
 }
 
 static void conn_close(conn *c);
 static void conn_read(conn *c);
+static void conn_write(conn *c, const void *data, unsigned int len);
 static int do_kill(client_ctx *cx) 
 {
 	conn_close(&cx->incoming);
 	
-	return s_dead;
+	return s_almost_dead_0;
 }
 
-static void write_reponse_done(uv_write_t *req, int status) 
+static int do_almost_dead(client_ctx *cx)
 {
-	conn *c;
-
-	c = CONTAINER_OF(req, conn, write_req);
-	
-	if (status) {
-		pr_err("Write error %s\n", uv_strerror(status));
-	}
-	buff_pull(c);	
+	ASSERT(cx->state >= s_almost_dead_0);
+	return cx->state + 1;  /* Another finalizer completed. */
 }
 
 static int do_process_request(client_ctx *cx)
@@ -161,13 +160,14 @@ static int do_process_request(client_ctx *cx)
 
 	incoming = &cx->incoming;
 	//ASSERT(incoming->rdstate == c_done);
-	ASSERT(incoming->wrstate == c_stop);
+//	ASSERT(incoming->wrstate == c_stop);
 
 	r.ParseFromArray(incoming->buf + 2, incoming->req_size);
 
 	switch (r.type())
 	{
-	case Request::CREATE_QUEUE: 
+	case Request::CREATE_QUEUE:
+		pr_info("CREATE_QUEUE");
 		{
 			CreateQueueResponse *create = new CreateQueueResponse();
 			std::string queueid = cx->sx->qs->CreateQueue(r.createqueue().name());
@@ -177,6 +177,7 @@ static int do_process_request(client_ctx *cx)
 		}
 		break;		
 	case Request::GET_QUEUE:
+		pr_info("GET_QUEUE");
 		{
 			GetQueueResponse *get = new GetQueueResponse();
 			std::string queueid = cx->sx->qs->GetQueue(r.getqueue().name());
@@ -186,6 +187,7 @@ static int do_process_request(client_ctx *cx)
 		}
 		break;
 	case Request::DEL_QUEUE:
+		pr_info("DEL_QUEUE");
 		{
 			DelQueueResponse *del = new DelQueueResponse();
 			cx->sx->qs->DeleteQueue(r.delqueue().queueid());
@@ -195,6 +197,7 @@ static int do_process_request(client_ctx *cx)
 		}
 		break;
 	case Request::ENQUEUE:
+		pr_info("ENQUEUE");
 		{
 			EnqueueResponse *enqueue = new EnqueueResponse();
 			cx->sx->qs->enqueue(r.enqueue().queueid(),
@@ -205,6 +208,7 @@ static int do_process_request(client_ctx *cx)
 		}
 		break;
 	case Request::READ:
+		pr_info("READ");
 		{
 			ReadResponse *read = new ReadResponse();
 			*read = cx->sx->qs->read(r.read().queueid(), r.read().timeout());			
@@ -213,6 +217,7 @@ static int do_process_request(client_ctx *cx)
 		}
 		break;
 	case Request::DEQUEUE:
+		pr_info("DEQUEUE");
 		{
 			DequeueResponse *dequeue = new DequeueResponse();
 			cx->sx->qs->dequeue(r.dequeue().queueid(),
@@ -226,10 +231,17 @@ static int do_process_request(client_ctx *cx)
 
 	*((uint16_t *)(&incoming->resp_buf)) = htons(resp.ByteSize());
 	resp.SerializeToArray(&incoming->resp_buf[2], sizeof(incoming->resp_buf)-2);
-	uv_buf_t wrbuf = uv_buf_init(incoming->resp_buf, resp.ByteSize()+2);
-	uv_write(&incoming->write_req, &incoming->handle.stream, &wrbuf, 1, write_reponse_done);
+	conn_write(incoming, incoming->resp_buf, resp.ByteSize() + 2);
 	
 	return s_write_response;
+}
+
+static int do_write_response(client_ctx *cx)
+{
+	buff_pull(&cx->incoming);
+	cx->incoming.req_size = 0;
+	conn_read(&cx->incoming);
+	return s_read_size;
 }
 
 static int do_read_request(client_ctx *cx)
@@ -239,7 +251,7 @@ static int do_read_request(client_ctx *cx)
 
 	incoming = &cx->incoming;
 	//ASSERT(incoming->rdstate == c_done);
-	ASSERT(incoming->wrstate == c_stop);
+//	ASSERT(incoming->wrstate == c_stop);
 	incoming->rdstate = c_stop;
 
 	if (incoming->result < 0) {
@@ -267,7 +279,7 @@ static int do_read_size(client_ctx *cx)
 	
 	incoming = &cx->incoming;
 	ASSERT(incoming->rdstate == c_done);
-	ASSERT(incoming->wrstate == c_stop);
+	//ASSERT(incoming->wrstate == c_stop);
 	incoming->rdstate = c_stop;
 
 	if (incoming->result < 0) {
@@ -280,7 +292,7 @@ static int do_read_size(client_ctx *cx)
 
 	if (size >= 2) {
 		incoming->req_size = ntohs(*((uint16_t *)data));
-		if (incoming->req_size > sizeof(incoming->buf)) {
+		if (incoming->req_size > sizeof(incoming->buf)-2) {
 			pr_err("read error: %d req size", incoming->req_size);
 			return do_kill(cx);
 		}
@@ -301,6 +313,18 @@ static void do_next(client_ctx *cx)
 	switch (cx->state) {
 	case s_read_size:
 		new_state = do_read_size(cx);
+		break;
+	case s_read_request:
+		new_state = do_read_request(cx);
+		break;
+	case s_process_request:
+		break;
+	case s_write_response:
+		new_state = do_write_response(cx);
+		break;
+	case s_almost_dead_0:
+	case s_almost_dead_1:
+		new_state = do_almost_dead(cx);
 		break;
 	default:
 		UNREACHABLE();
@@ -404,7 +428,8 @@ static void conn_write_done(uv_write_t *req, int status)
 	do_next(c->client);
 }
 
-static void conn_write(conn *c, const void *data, unsigned int len) {
+static void conn_write(conn *c, const void *data, unsigned int len)
+{
 	uv_buf_t buf;
 
 	ASSERT(c->wrstate == c_stop || c->wrstate == c_done);

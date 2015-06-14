@@ -54,14 +54,16 @@ class QueueServiceClient:
         r = qs.Request()
         r.type = r.CREATE_QUEUE
         r.createQueue.name = name
-        return self._perform(r)
+        resp = self._perform(r)
+        return resp.createQueue.queueid
 
     # Return the QueueId of the queue with the given name.
     def get_queue(self, name):
         r = qs.Request()
         r.type = r.GET_QUEUE
         r.getQueue.name = name
-        return self._perform(r)
+        resp = self._perform(r)
+        return resp.getQueue.queueid
 
     # Delete the given queue.
     def delete_queue(self, queueId):
@@ -76,7 +78,8 @@ class QueueServiceClient:
         r.type = r.ENQUEUE
         r.enqueue.queueid = queueId
         r.enqueue.data = data
-        return self._perform(r)
+        resp = self._perform(r)
+        return resp.enqueue.status
 
     """Read an object from the queue.
     This object will not be returned as a response to
@@ -88,7 +91,8 @@ class QueueServiceClient:
         r.type = r.READ
         r.read.queueid = queueId
         r.read.timeout = timeout
-        return self._perform(r)
+        resp = self._perform(r)
+        return resp.read.queueid, resp.read.data, resp.read.queueentitiyid
 
     """ Dequeue the object with the given QueueEntityId.
         A dequeue permanently removes the object from the queue."""
@@ -97,4 +101,5 @@ class QueueServiceClient:
         r.type = r.DEQUEUE
         r.dequeue.queueid = queueId
         r.dequeue.queueentitiyid = queueEntityId
-        return self._perform(r)
+        resp = self._perform(r)
+        return resp.dequeue.status
