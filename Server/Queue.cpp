@@ -13,12 +13,21 @@ Queue::~Queue()
 	uv_mutex_destroy(&m_readlock);
 }
 
+Queue::Element::Element(char *object, size_t len)
+{
+	m_data = new char[len];
+	m_size = len;
+	memcpy(m_data, object, len);
+}
+
+Queue::Element::~Element()
+{
+	delete[] m_data;
+}
+
 void Queue::enqueue(char *object, size_t len)
 {
-	Element *e = new Element();
-	e->data = new char[len];
-	e->size = len;
-	memcpy(e->data, object, len);
+	Element *e = new Element(object, len);
 
 	uv_mutex_lock(&m_lock);
 	m_queue.push_back(e);
@@ -41,18 +50,16 @@ const ReadResponse Queue::read(uint32_t timeout)
 	elementqueueid << expire << "-" << e;
 	printf("%s\n", elementqueueid.str().c_str());
 
-	ReadElement re;
-	re.elementid = elementqueueid.str();
-	re.expire = expire;
+	ExpirationEntry re(expire, elementqueueid.str());
 
 	uv_mutex_lock(&m_readlock);
-	m_read[re.elementid] = e;
+	m_read[re.elementid()] = e;
 	m_expire.push(re);	
 	uv_mutex_unlock(&m_readlock);
 
 	ReadResponse response;
-	response.set_data(e->data, e->size);
-	response.set_queueentitiyid(re.elementid);
+	response.set_data(e->data(), e->size());
+	response.set_queueentitiyid(re.elementid());
 	response.set_queueid(m_queueid);
 	
 	return response;
@@ -72,7 +79,6 @@ DequeueResponse Queue::dequeue(const std::string &QueueEntityId)
 	uv_mutex_unlock(&m_readlock);
 
 	if (e != NULL) {
-		delete[] e->data;
 		delete e;
 	}
 
@@ -87,11 +93,11 @@ void Queue::timer_expire_cb()
 
 	uv_mutex_lock(&m_readlock);
 	while (!m_expire.empty()) {
-		ReadElement re = m_expire.top();
-		if (now < re.expire)
+		ExpirationEntry re = m_expire.top();
+		if (now < re.expire())
 			break;		
 		m_expire.pop();
-		it = m_read.find(re.elementid);
+		it = m_read.find(re.elementid());
 		if (it != m_read.end()) {
 			e = it->second;
 			m_read.erase(it);

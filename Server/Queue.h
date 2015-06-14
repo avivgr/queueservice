@@ -15,19 +15,29 @@ class Queue
 {
 	class Element
 	{
+		char  *m_data;
+		size_t m_size;
 	public:
-		char  *data;
-		size_t size;
+		Element(char *data, size_t len);
+		~Element();
+
+		char *data() { return m_data; }
+		size_t size() { return m_size; }
 	};
 
-	class ReadElement
+	class ExpirationEntry
 	{
+		time_t m_expire;
+		std::string m_elementid;
 	public:
-		time_t expire;
-		std::string elementid;
+		ExpirationEntry(time_t expire, std::string &elementid)
+			: m_expire(expire), m_elementid(elementid) { }
 
-		bool operator<(const ReadElement &other) const {
-			return this->expire > other.expire;
+		time_t expire() const { return m_expire; }
+		std::string elementid() const { return m_elementid; }
+
+		bool operator<(const ExpirationEntry &other) const {
+			return this->expire() > other.expire();
 		}
 	};
 
@@ -38,7 +48,7 @@ class Queue
 	std::list<Element*> m_queue;
 
 	uv_mutex_t m_readlock;
-	std::priority_queue<ReadElement> m_expire;
+	std::priority_queue<ExpirationEntry> m_expire;
 	std::map<std::string, Element *> m_read;
 
 public:
