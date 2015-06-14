@@ -109,5 +109,4 @@ void Queue::timer_expire_cb()
 		}
 	}
 	uv_mutex_unlock(&m_readlock);
-
 }
