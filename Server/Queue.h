@@ -27,7 +27,7 @@ class Queue
 		std::string elementid;
 
 		bool operator<(const ReadElement &other) const {
-			return this->expire < other.expire;
+			return this->expire > other.expire;
 		}
 	};
 
@@ -44,6 +44,8 @@ class Queue
 public:
 	Queue();
 	virtual ~Queue();
+
+	void timer_expire_cb();
 
 	// Enqueue the object into the queue
 	virtual void enqueue(char *object, size_t len);

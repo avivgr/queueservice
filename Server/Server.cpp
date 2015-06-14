@@ -7,6 +7,7 @@
 #include <uv.h>
 
 #include "../Common/QueueService.pb.h"
+#include "Queue.h"
 
 #define DEFAULT_PORT 7000
 #define DEFAULT_BACKLOG 128
@@ -65,6 +66,7 @@ void on_new_connection(uv_stream_t *server, int status) {
 	}
 }
 
+#if 0
 int main() {
 	loop = uv_default_loop();
 
@@ -81,9 +83,29 @@ int main() {
 	}
 	return uv_run(loop, UV_RUN_DEFAULT);
 }
-#if 0
+#else 
 int main(int argc, char* argv[])
 {
+	Queue *q = new Queue();
+
+	q->enqueue("aviv1", 5);
+	q->enqueue("aviv2", 5);
+	q->enqueue("aviv3", 5);
+	q->enqueue("aviv4", 5);
+	q->enqueue("aviv5", 5);
+	q->enqueue("aviv6", 5);
+
+	auto r1 = q->read(10);
+	auto r2 = q->read(9);
+	auto r3 = q->read(1);
+	auto r4 = q->read(3);
+
+	Sleep(3000);
+	q->timer_expire_cb();
+
+	q->dequeue(r1.queueentitiyid());
+	q->dequeue("garbage");
+
 	return 0;
 }
 #endif
