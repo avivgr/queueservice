@@ -39,11 +39,60 @@ class GetQueueResponse;
 class DelQueueRequest;
 class DelQueueResponse;
 class EnqueueRequest;
+class EnqueueResponse;
 class ReadRequest;
 class ReadResponse;
 class DequeueRequest;
 class DequeueResponse;
+class Request;
+class Response;
 
+enum Request_ReqType {
+  Request_ReqType_CREATE_QUEUE = 1,
+  Request_ReqType_GET_QUEUE = 2,
+  Request_ReqType_DEL_QUEUE = 3,
+  Request_ReqType_ENQUEUE = 4,
+  Request_ReqType_READ = 5,
+  Request_ReqType_DEQUEUE = 6
+};
+bool Request_ReqType_IsValid(int value);
+const Request_ReqType Request_ReqType_ReqType_MIN = Request_ReqType_CREATE_QUEUE;
+const Request_ReqType Request_ReqType_ReqType_MAX = Request_ReqType_DEQUEUE;
+const int Request_ReqType_ReqType_ARRAYSIZE = Request_ReqType_ReqType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Request_ReqType_descriptor();
+inline const ::std::string& Request_ReqType_Name(Request_ReqType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Request_ReqType_descriptor(), value);
+}
+inline bool Request_ReqType_Parse(
+    const ::std::string& name, Request_ReqType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Request_ReqType>(
+    Request_ReqType_descriptor(), name, value);
+}
+enum Response_RespType {
+  Response_RespType_CREATE_QUEUE = 1,
+  Response_RespType_GET_QUEUE = 2,
+  Response_RespType_DEL_QUEUE = 3,
+  Response_RespType_ENQUEUE = 4,
+  Response_RespType_READ = 5,
+  Response_RespType_DEQUEUE = 6
+};
+bool Response_RespType_IsValid(int value);
+const Response_RespType Response_RespType_RespType_MIN = Response_RespType_CREATE_QUEUE;
+const Response_RespType Response_RespType_RespType_MAX = Response_RespType_DEQUEUE;
+const int Response_RespType_RespType_ARRAYSIZE = Response_RespType_RespType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Response_RespType_descriptor();
+inline const ::std::string& Response_RespType_Name(Response_RespType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Response_RespType_descriptor(), value);
+}
+inline bool Response_RespType_Parse(
+    const ::std::string& name, Response_RespType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Response_RespType>(
+    Response_RespType_descriptor(), name, value);
+}
 enum Status {
   SUCCESS = 0,
   NO_MEM = 1,
@@ -664,6 +713,85 @@ class EnqueueRequest : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class EnqueueResponse : public ::google::protobuf::Message {
+ public:
+  EnqueueResponse();
+  virtual ~EnqueueResponse();
+
+  EnqueueResponse(const EnqueueResponse& from);
+
+  inline EnqueueResponse& operator=(const EnqueueResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const EnqueueResponse& default_instance();
+
+  void Swap(EnqueueResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  EnqueueResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const EnqueueResponse& from);
+  void MergeFrom(const EnqueueResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required .Status status = 1;
+  inline bool has_status() const;
+  inline void clear_status();
+  static const int kStatusFieldNumber = 1;
+  inline ::Status status() const;
+  inline void set_status(::Status value);
+
+  // @@protoc_insertion_point(class_scope:EnqueueResponse)
+ private:
+  inline void set_has_status();
+  inline void clear_has_status();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  int status_;
+  friend void  protobuf_AddDesc_QueueService_2eproto();
+  friend void protobuf_AssignDesc_QueueService_2eproto();
+  friend void protobuf_ShutdownFile_QueueService_2eproto();
+
+  void InitAsDefaultInstance();
+  static EnqueueResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class ReadRequest : public ::google::protobuf::Message {
  public:
   ReadRequest();
@@ -1047,6 +1175,364 @@ class DequeueResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static DequeueResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Request : public ::google::protobuf::Message {
+ public:
+  Request();
+  virtual ~Request();
+
+  Request(const Request& from);
+
+  inline Request& operator=(const Request& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Request& default_instance();
+
+  void Swap(Request* other);
+
+  // implements Message ----------------------------------------------
+
+  Request* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Request& from);
+  void MergeFrom(const Request& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  typedef Request_ReqType ReqType;
+  static const ReqType CREATE_QUEUE = Request_ReqType_CREATE_QUEUE;
+  static const ReqType GET_QUEUE = Request_ReqType_GET_QUEUE;
+  static const ReqType DEL_QUEUE = Request_ReqType_DEL_QUEUE;
+  static const ReqType ENQUEUE = Request_ReqType_ENQUEUE;
+  static const ReqType READ = Request_ReqType_READ;
+  static const ReqType DEQUEUE = Request_ReqType_DEQUEUE;
+  static inline bool ReqType_IsValid(int value) {
+    return Request_ReqType_IsValid(value);
+  }
+  static const ReqType ReqType_MIN =
+    Request_ReqType_ReqType_MIN;
+  static const ReqType ReqType_MAX =
+    Request_ReqType_ReqType_MAX;
+  static const int ReqType_ARRAYSIZE =
+    Request_ReqType_ReqType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  ReqType_descriptor() {
+    return Request_ReqType_descriptor();
+  }
+  static inline const ::std::string& ReqType_Name(ReqType value) {
+    return Request_ReqType_Name(value);
+  }
+  static inline bool ReqType_Parse(const ::std::string& name,
+      ReqType* value) {
+    return Request_ReqType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  // required .Request.ReqType type = 1;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 1;
+  inline ::Request_ReqType type() const;
+  inline void set_type(::Request_ReqType value);
+
+  // optional .CreateQueueRequest createQueue = 2;
+  inline bool has_createqueue() const;
+  inline void clear_createqueue();
+  static const int kCreateQueueFieldNumber = 2;
+  inline const ::CreateQueueRequest& createqueue() const;
+  inline ::CreateQueueRequest* mutable_createqueue();
+  inline ::CreateQueueRequest* release_createqueue();
+  inline void set_allocated_createqueue(::CreateQueueRequest* createqueue);
+
+  // optional .GetQueueRequest getQueue = 3;
+  inline bool has_getqueue() const;
+  inline void clear_getqueue();
+  static const int kGetQueueFieldNumber = 3;
+  inline const ::GetQueueRequest& getqueue() const;
+  inline ::GetQueueRequest* mutable_getqueue();
+  inline ::GetQueueRequest* release_getqueue();
+  inline void set_allocated_getqueue(::GetQueueRequest* getqueue);
+
+  // optional .DelQueueRequest delQueue = 4;
+  inline bool has_delqueue() const;
+  inline void clear_delqueue();
+  static const int kDelQueueFieldNumber = 4;
+  inline const ::DelQueueRequest& delqueue() const;
+  inline ::DelQueueRequest* mutable_delqueue();
+  inline ::DelQueueRequest* release_delqueue();
+  inline void set_allocated_delqueue(::DelQueueRequest* delqueue);
+
+  // optional .EnqueueRequest enqueue = 5;
+  inline bool has_enqueue() const;
+  inline void clear_enqueue();
+  static const int kEnqueueFieldNumber = 5;
+  inline const ::EnqueueRequest& enqueue() const;
+  inline ::EnqueueRequest* mutable_enqueue();
+  inline ::EnqueueRequest* release_enqueue();
+  inline void set_allocated_enqueue(::EnqueueRequest* enqueue);
+
+  // optional .ReadRequest read = 6;
+  inline bool has_read() const;
+  inline void clear_read();
+  static const int kReadFieldNumber = 6;
+  inline const ::ReadRequest& read() const;
+  inline ::ReadRequest* mutable_read();
+  inline ::ReadRequest* release_read();
+  inline void set_allocated_read(::ReadRequest* read);
+
+  // optional .DequeueRequest dequeue = 7;
+  inline bool has_dequeue() const;
+  inline void clear_dequeue();
+  static const int kDequeueFieldNumber = 7;
+  inline const ::DequeueRequest& dequeue() const;
+  inline ::DequeueRequest* mutable_dequeue();
+  inline ::DequeueRequest* release_dequeue();
+  inline void set_allocated_dequeue(::DequeueRequest* dequeue);
+
+  // @@protoc_insertion_point(class_scope:Request)
+ private:
+  inline void set_has_type();
+  inline void clear_has_type();
+  inline void set_has_createqueue();
+  inline void clear_has_createqueue();
+  inline void set_has_getqueue();
+  inline void clear_has_getqueue();
+  inline void set_has_delqueue();
+  inline void clear_has_delqueue();
+  inline void set_has_enqueue();
+  inline void clear_has_enqueue();
+  inline void set_has_read();
+  inline void clear_has_read();
+  inline void set_has_dequeue();
+  inline void clear_has_dequeue();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::CreateQueueRequest* createqueue_;
+  ::GetQueueRequest* getqueue_;
+  ::DelQueueRequest* delqueue_;
+  ::EnqueueRequest* enqueue_;
+  ::ReadRequest* read_;
+  ::DequeueRequest* dequeue_;
+  int type_;
+  friend void  protobuf_AddDesc_QueueService_2eproto();
+  friend void protobuf_AssignDesc_QueueService_2eproto();
+  friend void protobuf_ShutdownFile_QueueService_2eproto();
+
+  void InitAsDefaultInstance();
+  static Request* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Response : public ::google::protobuf::Message {
+ public:
+  Response();
+  virtual ~Response();
+
+  Response(const Response& from);
+
+  inline Response& operator=(const Response& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Response& default_instance();
+
+  void Swap(Response* other);
+
+  // implements Message ----------------------------------------------
+
+  Response* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Response& from);
+  void MergeFrom(const Response& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  typedef Response_RespType RespType;
+  static const RespType CREATE_QUEUE = Response_RespType_CREATE_QUEUE;
+  static const RespType GET_QUEUE = Response_RespType_GET_QUEUE;
+  static const RespType DEL_QUEUE = Response_RespType_DEL_QUEUE;
+  static const RespType ENQUEUE = Response_RespType_ENQUEUE;
+  static const RespType READ = Response_RespType_READ;
+  static const RespType DEQUEUE = Response_RespType_DEQUEUE;
+  static inline bool RespType_IsValid(int value) {
+    return Response_RespType_IsValid(value);
+  }
+  static const RespType RespType_MIN =
+    Response_RespType_RespType_MIN;
+  static const RespType RespType_MAX =
+    Response_RespType_RespType_MAX;
+  static const int RespType_ARRAYSIZE =
+    Response_RespType_RespType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  RespType_descriptor() {
+    return Response_RespType_descriptor();
+  }
+  static inline const ::std::string& RespType_Name(RespType value) {
+    return Response_RespType_Name(value);
+  }
+  static inline bool RespType_Parse(const ::std::string& name,
+      RespType* value) {
+    return Response_RespType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  // required .Response.RespType type = 1;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 1;
+  inline ::Response_RespType type() const;
+  inline void set_type(::Response_RespType value);
+
+  // optional .CreateQueueResponse createQueue = 2;
+  inline bool has_createqueue() const;
+  inline void clear_createqueue();
+  static const int kCreateQueueFieldNumber = 2;
+  inline const ::CreateQueueResponse& createqueue() const;
+  inline ::CreateQueueResponse* mutable_createqueue();
+  inline ::CreateQueueResponse* release_createqueue();
+  inline void set_allocated_createqueue(::CreateQueueResponse* createqueue);
+
+  // optional .GetQueueResponse getQueue = 3;
+  inline bool has_getqueue() const;
+  inline void clear_getqueue();
+  static const int kGetQueueFieldNumber = 3;
+  inline const ::GetQueueResponse& getqueue() const;
+  inline ::GetQueueResponse* mutable_getqueue();
+  inline ::GetQueueResponse* release_getqueue();
+  inline void set_allocated_getqueue(::GetQueueResponse* getqueue);
+
+  // optional .DelQueueResponse delQueue = 4;
+  inline bool has_delqueue() const;
+  inline void clear_delqueue();
+  static const int kDelQueueFieldNumber = 4;
+  inline const ::DelQueueResponse& delqueue() const;
+  inline ::DelQueueResponse* mutable_delqueue();
+  inline ::DelQueueResponse* release_delqueue();
+  inline void set_allocated_delqueue(::DelQueueResponse* delqueue);
+
+  // optional .EnqueueResponse enqueue = 5;
+  inline bool has_enqueue() const;
+  inline void clear_enqueue();
+  static const int kEnqueueFieldNumber = 5;
+  inline const ::EnqueueResponse& enqueue() const;
+  inline ::EnqueueResponse* mutable_enqueue();
+  inline ::EnqueueResponse* release_enqueue();
+  inline void set_allocated_enqueue(::EnqueueResponse* enqueue);
+
+  // optional .ReadResponse read = 6;
+  inline bool has_read() const;
+  inline void clear_read();
+  static const int kReadFieldNumber = 6;
+  inline const ::ReadResponse& read() const;
+  inline ::ReadResponse* mutable_read();
+  inline ::ReadResponse* release_read();
+  inline void set_allocated_read(::ReadResponse* read);
+
+  // optional .DequeueResponse dequeue = 7;
+  inline bool has_dequeue() const;
+  inline void clear_dequeue();
+  static const int kDequeueFieldNumber = 7;
+  inline const ::DequeueResponse& dequeue() const;
+  inline ::DequeueResponse* mutable_dequeue();
+  inline ::DequeueResponse* release_dequeue();
+  inline void set_allocated_dequeue(::DequeueResponse* dequeue);
+
+  // @@protoc_insertion_point(class_scope:Response)
+ private:
+  inline void set_has_type();
+  inline void clear_has_type();
+  inline void set_has_createqueue();
+  inline void clear_has_createqueue();
+  inline void set_has_getqueue();
+  inline void clear_has_getqueue();
+  inline void set_has_delqueue();
+  inline void clear_has_delqueue();
+  inline void set_has_enqueue();
+  inline void clear_has_enqueue();
+  inline void set_has_read();
+  inline void clear_has_read();
+  inline void set_has_dequeue();
+  inline void clear_has_dequeue();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::CreateQueueResponse* createqueue_;
+  ::GetQueueResponse* getqueue_;
+  ::DelQueueResponse* delqueue_;
+  ::EnqueueResponse* enqueue_;
+  ::ReadResponse* read_;
+  ::DequeueResponse* dequeue_;
+  int type_;
+  friend void  protobuf_AddDesc_QueueService_2eproto();
+  friend void protobuf_AssignDesc_QueueService_2eproto();
+  friend void protobuf_ShutdownFile_QueueService_2eproto();
+
+  void InitAsDefaultInstance();
+  static Response* default_instance_;
 };
 // ===================================================================
 
@@ -1638,6 +2124,35 @@ inline void EnqueueRequest::set_allocated_data(::std::string* data) {
 
 // -------------------------------------------------------------------
 
+// EnqueueResponse
+
+// required .Status status = 1;
+inline bool EnqueueResponse::has_status() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void EnqueueResponse::set_has_status() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void EnqueueResponse::clear_has_status() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void EnqueueResponse::clear_status() {
+  status_ = 0;
+  clear_has_status();
+}
+inline ::Status EnqueueResponse::status() const {
+  // @@protoc_insertion_point(field_get:EnqueueResponse.status)
+  return static_cast< ::Status >(status_);
+}
+inline void EnqueueResponse::set_status(::Status value) {
+  assert(::Status_IsValid(value));
+  set_has_status();
+  status_ = value;
+  // @@protoc_insertion_point(field_set:EnqueueResponse.status)
+}
+
+// -------------------------------------------------------------------
+
 // ReadRequest
 
 // required string queueid = 1;
@@ -2157,6 +2672,556 @@ inline void DequeueResponse::set_status(::Status value) {
   // @@protoc_insertion_point(field_set:DequeueResponse.status)
 }
 
+// -------------------------------------------------------------------
+
+// Request
+
+// required .Request.ReqType type = 1;
+inline bool Request::has_type() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Request::set_has_type() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Request::clear_has_type() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Request::clear_type() {
+  type_ = 1;
+  clear_has_type();
+}
+inline ::Request_ReqType Request::type() const {
+  // @@protoc_insertion_point(field_get:Request.type)
+  return static_cast< ::Request_ReqType >(type_);
+}
+inline void Request::set_type(::Request_ReqType value) {
+  assert(::Request_ReqType_IsValid(value));
+  set_has_type();
+  type_ = value;
+  // @@protoc_insertion_point(field_set:Request.type)
+}
+
+// optional .CreateQueueRequest createQueue = 2;
+inline bool Request::has_createqueue() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Request::set_has_createqueue() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Request::clear_has_createqueue() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Request::clear_createqueue() {
+  if (createqueue_ != NULL) createqueue_->::CreateQueueRequest::Clear();
+  clear_has_createqueue();
+}
+inline const ::CreateQueueRequest& Request::createqueue() const {
+  // @@protoc_insertion_point(field_get:Request.createQueue)
+  return createqueue_ != NULL ? *createqueue_ : *default_instance_->createqueue_;
+}
+inline ::CreateQueueRequest* Request::mutable_createqueue() {
+  set_has_createqueue();
+  if (createqueue_ == NULL) createqueue_ = new ::CreateQueueRequest;
+  // @@protoc_insertion_point(field_mutable:Request.createQueue)
+  return createqueue_;
+}
+inline ::CreateQueueRequest* Request::release_createqueue() {
+  clear_has_createqueue();
+  ::CreateQueueRequest* temp = createqueue_;
+  createqueue_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_createqueue(::CreateQueueRequest* createqueue) {
+  delete createqueue_;
+  createqueue_ = createqueue;
+  if (createqueue) {
+    set_has_createqueue();
+  } else {
+    clear_has_createqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.createQueue)
+}
+
+// optional .GetQueueRequest getQueue = 3;
+inline bool Request::has_getqueue() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Request::set_has_getqueue() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Request::clear_has_getqueue() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Request::clear_getqueue() {
+  if (getqueue_ != NULL) getqueue_->::GetQueueRequest::Clear();
+  clear_has_getqueue();
+}
+inline const ::GetQueueRequest& Request::getqueue() const {
+  // @@protoc_insertion_point(field_get:Request.getQueue)
+  return getqueue_ != NULL ? *getqueue_ : *default_instance_->getqueue_;
+}
+inline ::GetQueueRequest* Request::mutable_getqueue() {
+  set_has_getqueue();
+  if (getqueue_ == NULL) getqueue_ = new ::GetQueueRequest;
+  // @@protoc_insertion_point(field_mutable:Request.getQueue)
+  return getqueue_;
+}
+inline ::GetQueueRequest* Request::release_getqueue() {
+  clear_has_getqueue();
+  ::GetQueueRequest* temp = getqueue_;
+  getqueue_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_getqueue(::GetQueueRequest* getqueue) {
+  delete getqueue_;
+  getqueue_ = getqueue;
+  if (getqueue) {
+    set_has_getqueue();
+  } else {
+    clear_has_getqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.getQueue)
+}
+
+// optional .DelQueueRequest delQueue = 4;
+inline bool Request::has_delqueue() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void Request::set_has_delqueue() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void Request::clear_has_delqueue() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void Request::clear_delqueue() {
+  if (delqueue_ != NULL) delqueue_->::DelQueueRequest::Clear();
+  clear_has_delqueue();
+}
+inline const ::DelQueueRequest& Request::delqueue() const {
+  // @@protoc_insertion_point(field_get:Request.delQueue)
+  return delqueue_ != NULL ? *delqueue_ : *default_instance_->delqueue_;
+}
+inline ::DelQueueRequest* Request::mutable_delqueue() {
+  set_has_delqueue();
+  if (delqueue_ == NULL) delqueue_ = new ::DelQueueRequest;
+  // @@protoc_insertion_point(field_mutable:Request.delQueue)
+  return delqueue_;
+}
+inline ::DelQueueRequest* Request::release_delqueue() {
+  clear_has_delqueue();
+  ::DelQueueRequest* temp = delqueue_;
+  delqueue_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_delqueue(::DelQueueRequest* delqueue) {
+  delete delqueue_;
+  delqueue_ = delqueue;
+  if (delqueue) {
+    set_has_delqueue();
+  } else {
+    clear_has_delqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.delQueue)
+}
+
+// optional .EnqueueRequest enqueue = 5;
+inline bool Request::has_enqueue() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void Request::set_has_enqueue() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void Request::clear_has_enqueue() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void Request::clear_enqueue() {
+  if (enqueue_ != NULL) enqueue_->::EnqueueRequest::Clear();
+  clear_has_enqueue();
+}
+inline const ::EnqueueRequest& Request::enqueue() const {
+  // @@protoc_insertion_point(field_get:Request.enqueue)
+  return enqueue_ != NULL ? *enqueue_ : *default_instance_->enqueue_;
+}
+inline ::EnqueueRequest* Request::mutable_enqueue() {
+  set_has_enqueue();
+  if (enqueue_ == NULL) enqueue_ = new ::EnqueueRequest;
+  // @@protoc_insertion_point(field_mutable:Request.enqueue)
+  return enqueue_;
+}
+inline ::EnqueueRequest* Request::release_enqueue() {
+  clear_has_enqueue();
+  ::EnqueueRequest* temp = enqueue_;
+  enqueue_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_enqueue(::EnqueueRequest* enqueue) {
+  delete enqueue_;
+  enqueue_ = enqueue;
+  if (enqueue) {
+    set_has_enqueue();
+  } else {
+    clear_has_enqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.enqueue)
+}
+
+// optional .ReadRequest read = 6;
+inline bool Request::has_read() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void Request::set_has_read() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void Request::clear_has_read() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void Request::clear_read() {
+  if (read_ != NULL) read_->::ReadRequest::Clear();
+  clear_has_read();
+}
+inline const ::ReadRequest& Request::read() const {
+  // @@protoc_insertion_point(field_get:Request.read)
+  return read_ != NULL ? *read_ : *default_instance_->read_;
+}
+inline ::ReadRequest* Request::mutable_read() {
+  set_has_read();
+  if (read_ == NULL) read_ = new ::ReadRequest;
+  // @@protoc_insertion_point(field_mutable:Request.read)
+  return read_;
+}
+inline ::ReadRequest* Request::release_read() {
+  clear_has_read();
+  ::ReadRequest* temp = read_;
+  read_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_read(::ReadRequest* read) {
+  delete read_;
+  read_ = read;
+  if (read) {
+    set_has_read();
+  } else {
+    clear_has_read();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.read)
+}
+
+// optional .DequeueRequest dequeue = 7;
+inline bool Request::has_dequeue() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void Request::set_has_dequeue() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void Request::clear_has_dequeue() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void Request::clear_dequeue() {
+  if (dequeue_ != NULL) dequeue_->::DequeueRequest::Clear();
+  clear_has_dequeue();
+}
+inline const ::DequeueRequest& Request::dequeue() const {
+  // @@protoc_insertion_point(field_get:Request.dequeue)
+  return dequeue_ != NULL ? *dequeue_ : *default_instance_->dequeue_;
+}
+inline ::DequeueRequest* Request::mutable_dequeue() {
+  set_has_dequeue();
+  if (dequeue_ == NULL) dequeue_ = new ::DequeueRequest;
+  // @@protoc_insertion_point(field_mutable:Request.dequeue)
+  return dequeue_;
+}
+inline ::DequeueRequest* Request::release_dequeue() {
+  clear_has_dequeue();
+  ::DequeueRequest* temp = dequeue_;
+  dequeue_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_dequeue(::DequeueRequest* dequeue) {
+  delete dequeue_;
+  dequeue_ = dequeue;
+  if (dequeue) {
+    set_has_dequeue();
+  } else {
+    clear_has_dequeue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.dequeue)
+}
+
+// -------------------------------------------------------------------
+
+// Response
+
+// required .Response.RespType type = 1;
+inline bool Response::has_type() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Response::set_has_type() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Response::clear_has_type() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Response::clear_type() {
+  type_ = 1;
+  clear_has_type();
+}
+inline ::Response_RespType Response::type() const {
+  // @@protoc_insertion_point(field_get:Response.type)
+  return static_cast< ::Response_RespType >(type_);
+}
+inline void Response::set_type(::Response_RespType value) {
+  assert(::Response_RespType_IsValid(value));
+  set_has_type();
+  type_ = value;
+  // @@protoc_insertion_point(field_set:Response.type)
+}
+
+// optional .CreateQueueResponse createQueue = 2;
+inline bool Response::has_createqueue() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Response::set_has_createqueue() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Response::clear_has_createqueue() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Response::clear_createqueue() {
+  if (createqueue_ != NULL) createqueue_->::CreateQueueResponse::Clear();
+  clear_has_createqueue();
+}
+inline const ::CreateQueueResponse& Response::createqueue() const {
+  // @@protoc_insertion_point(field_get:Response.createQueue)
+  return createqueue_ != NULL ? *createqueue_ : *default_instance_->createqueue_;
+}
+inline ::CreateQueueResponse* Response::mutable_createqueue() {
+  set_has_createqueue();
+  if (createqueue_ == NULL) createqueue_ = new ::CreateQueueResponse;
+  // @@protoc_insertion_point(field_mutable:Response.createQueue)
+  return createqueue_;
+}
+inline ::CreateQueueResponse* Response::release_createqueue() {
+  clear_has_createqueue();
+  ::CreateQueueResponse* temp = createqueue_;
+  createqueue_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_createqueue(::CreateQueueResponse* createqueue) {
+  delete createqueue_;
+  createqueue_ = createqueue;
+  if (createqueue) {
+    set_has_createqueue();
+  } else {
+    clear_has_createqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.createQueue)
+}
+
+// optional .GetQueueResponse getQueue = 3;
+inline bool Response::has_getqueue() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Response::set_has_getqueue() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Response::clear_has_getqueue() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Response::clear_getqueue() {
+  if (getqueue_ != NULL) getqueue_->::GetQueueResponse::Clear();
+  clear_has_getqueue();
+}
+inline const ::GetQueueResponse& Response::getqueue() const {
+  // @@protoc_insertion_point(field_get:Response.getQueue)
+  return getqueue_ != NULL ? *getqueue_ : *default_instance_->getqueue_;
+}
+inline ::GetQueueResponse* Response::mutable_getqueue() {
+  set_has_getqueue();
+  if (getqueue_ == NULL) getqueue_ = new ::GetQueueResponse;
+  // @@protoc_insertion_point(field_mutable:Response.getQueue)
+  return getqueue_;
+}
+inline ::GetQueueResponse* Response::release_getqueue() {
+  clear_has_getqueue();
+  ::GetQueueResponse* temp = getqueue_;
+  getqueue_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_getqueue(::GetQueueResponse* getqueue) {
+  delete getqueue_;
+  getqueue_ = getqueue;
+  if (getqueue) {
+    set_has_getqueue();
+  } else {
+    clear_has_getqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.getQueue)
+}
+
+// optional .DelQueueResponse delQueue = 4;
+inline bool Response::has_delqueue() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void Response::set_has_delqueue() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void Response::clear_has_delqueue() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void Response::clear_delqueue() {
+  if (delqueue_ != NULL) delqueue_->::DelQueueResponse::Clear();
+  clear_has_delqueue();
+}
+inline const ::DelQueueResponse& Response::delqueue() const {
+  // @@protoc_insertion_point(field_get:Response.delQueue)
+  return delqueue_ != NULL ? *delqueue_ : *default_instance_->delqueue_;
+}
+inline ::DelQueueResponse* Response::mutable_delqueue() {
+  set_has_delqueue();
+  if (delqueue_ == NULL) delqueue_ = new ::DelQueueResponse;
+  // @@protoc_insertion_point(field_mutable:Response.delQueue)
+  return delqueue_;
+}
+inline ::DelQueueResponse* Response::release_delqueue() {
+  clear_has_delqueue();
+  ::DelQueueResponse* temp = delqueue_;
+  delqueue_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_delqueue(::DelQueueResponse* delqueue) {
+  delete delqueue_;
+  delqueue_ = delqueue;
+  if (delqueue) {
+    set_has_delqueue();
+  } else {
+    clear_has_delqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.delQueue)
+}
+
+// optional .EnqueueResponse enqueue = 5;
+inline bool Response::has_enqueue() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void Response::set_has_enqueue() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void Response::clear_has_enqueue() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void Response::clear_enqueue() {
+  if (enqueue_ != NULL) enqueue_->::EnqueueResponse::Clear();
+  clear_has_enqueue();
+}
+inline const ::EnqueueResponse& Response::enqueue() const {
+  // @@protoc_insertion_point(field_get:Response.enqueue)
+  return enqueue_ != NULL ? *enqueue_ : *default_instance_->enqueue_;
+}
+inline ::EnqueueResponse* Response::mutable_enqueue() {
+  set_has_enqueue();
+  if (enqueue_ == NULL) enqueue_ = new ::EnqueueResponse;
+  // @@protoc_insertion_point(field_mutable:Response.enqueue)
+  return enqueue_;
+}
+inline ::EnqueueResponse* Response::release_enqueue() {
+  clear_has_enqueue();
+  ::EnqueueResponse* temp = enqueue_;
+  enqueue_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_enqueue(::EnqueueResponse* enqueue) {
+  delete enqueue_;
+  enqueue_ = enqueue;
+  if (enqueue) {
+    set_has_enqueue();
+  } else {
+    clear_has_enqueue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.enqueue)
+}
+
+// optional .ReadResponse read = 6;
+inline bool Response::has_read() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void Response::set_has_read() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void Response::clear_has_read() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void Response::clear_read() {
+  if (read_ != NULL) read_->::ReadResponse::Clear();
+  clear_has_read();
+}
+inline const ::ReadResponse& Response::read() const {
+  // @@protoc_insertion_point(field_get:Response.read)
+  return read_ != NULL ? *read_ : *default_instance_->read_;
+}
+inline ::ReadResponse* Response::mutable_read() {
+  set_has_read();
+  if (read_ == NULL) read_ = new ::ReadResponse;
+  // @@protoc_insertion_point(field_mutable:Response.read)
+  return read_;
+}
+inline ::ReadResponse* Response::release_read() {
+  clear_has_read();
+  ::ReadResponse* temp = read_;
+  read_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_read(::ReadResponse* read) {
+  delete read_;
+  read_ = read;
+  if (read) {
+    set_has_read();
+  } else {
+    clear_has_read();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.read)
+}
+
+// optional .DequeueResponse dequeue = 7;
+inline bool Response::has_dequeue() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void Response::set_has_dequeue() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void Response::clear_has_dequeue() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void Response::clear_dequeue() {
+  if (dequeue_ != NULL) dequeue_->::DequeueResponse::Clear();
+  clear_has_dequeue();
+}
+inline const ::DequeueResponse& Response::dequeue() const {
+  // @@protoc_insertion_point(field_get:Response.dequeue)
+  return dequeue_ != NULL ? *dequeue_ : *default_instance_->dequeue_;
+}
+inline ::DequeueResponse* Response::mutable_dequeue() {
+  set_has_dequeue();
+  if (dequeue_ == NULL) dequeue_ = new ::DequeueResponse;
+  // @@protoc_insertion_point(field_mutable:Response.dequeue)
+  return dequeue_;
+}
+inline ::DequeueResponse* Response::release_dequeue() {
+  clear_has_dequeue();
+  ::DequeueResponse* temp = dequeue_;
+  dequeue_ = NULL;
+  return temp;
+}
+inline void Response::set_allocated_dequeue(::DequeueResponse* dequeue) {
+  delete dequeue_;
+  dequeue_ = dequeue;
+  if (dequeue) {
+    set_has_dequeue();
+  } else {
+    clear_has_dequeue();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Response.dequeue)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -2164,6 +3229,16 @@ inline void DequeueResponse::set_status(::Status value) {
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::Request_ReqType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Request_ReqType>() {
+  return ::Request_ReqType_descriptor();
+}
+template <> struct is_proto_enum< ::Response_RespType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Response_RespType>() {
+  return ::Response_RespType_descriptor();
+}
 template <> struct is_proto_enum< ::Status> : ::google::protobuf::internal::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Status>() {

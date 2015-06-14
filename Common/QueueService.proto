@@ -38,6 +38,10 @@ message EnqueueRequest {
   required bytes data = 2;
 }
 
+message EnqueueResponse {
+    required Status status = 1;
+}
+
 /* Read */
 message ReadRequest {
   required string queueid = 1;
@@ -58,6 +62,48 @@ message DequeueRequest {
 
 message DequeueResponse {
     required Status status = 1;
+}
+
+message Request
+{
+	enum ReqType
+	{
+		CREATE_QUEUE = 1;
+		GET_QUEUE = 2;
+		DEL_QUEUE = 3;
+		ENQUEUE = 4;
+		READ = 5;
+		DEQUEUE = 6;
+	}
+
+	required ReqType type = 1;
+	optional CreateQueueRequest createQueue = 2;
+	optional GetQueueRequest getQueue = 3;
+	optional DelQueueRequest delQueue = 4;
+	optional EnqueueRequest enqueue = 5;
+	optional ReadRequest read = 6;
+	optional DequeueRequest dequeue = 7; 
+}
+
+message Response
+{
+	enum RespType
+	{
+		CREATE_QUEUE = 1;
+		GET_QUEUE = 2;
+		DEL_QUEUE = 3;
+		ENQUEUE = 4;
+		READ = 5;
+		DEQUEUE = 6;
+	}
+
+	required RespType type = 1;
+	optional CreateQueueResponse createQueue = 2;
+	optional GetQueueResponse getQueue = 3;
+	optional DelQueueResponse delQueue = 4;
+	optional EnqueueResponse enqueue = 5;
+	optional ReadResponse read = 6;
+	optional DequeueResponse dequeue = 7; 
 }
 
 
