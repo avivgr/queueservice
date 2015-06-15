@@ -600,7 +600,7 @@ static void parse_opts(server_config *cf, int argc, char **argv)
 {
 	int opt;
 
-	while (-1 != (opt = getopt(argc, argv, "H:hp:"))) {
+	while (-1 != (opt = getopt(argc, argv, "H:hp:v"))) {
 		switch (opt) {
 		case 'H':
 			cf->bind_host = optarg;
@@ -611,6 +611,9 @@ static void parse_opts(server_config *cf, int argc, char **argv)
 				pr_err("bad port number: %s", optarg);
 				usage(argv[0]);
 			}
+			break;
+		case 'v':
+			verbose = 1;
 			break;
 
 		default:

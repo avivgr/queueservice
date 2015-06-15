@@ -1,4 +1,5 @@
 #include "QueueService.h"
+#include "Util.h"
 
 QueueService::QueueService()
 {

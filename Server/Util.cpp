@@ -14,7 +14,13 @@ void *xmalloc(size_t size)
 	return ptr;
 }
 
-void pr_info(const char *fmt, ...) {
+int verbose = 0;
+
+void pr_info(const char *fmt, ...) 
+{
+	if (!verbose)
+		return;
+
 	va_list ap;
 	va_start(ap, fmt);
 	pr_do(stdout, "info", fmt, ap);

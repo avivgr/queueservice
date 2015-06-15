@@ -1,4 +1,5 @@
 #include "Queue.h"
+#include "Util.h"
 
 Queue::Queue(std::string &queueid, std::string &name)
 	: m_queueid(queueid), m_name(name)
@@ -61,7 +62,7 @@ const ReadResponse Queue::read(uint32_t timeout)
 	time_t expire = time(0) + timeout;
 	std::stringstream elementqueueid;
 	elementqueueid << expire << "-" << e;
-	printf("%s\n", elementqueueid.str().c_str());
+	pr_info("read - %s\n", elementqueueid.str().c_str());
 
 	ExpirationEntry re(expire, elementqueueid.str());
 

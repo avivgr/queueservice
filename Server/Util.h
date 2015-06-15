@@ -22,6 +22,7 @@
 
 void *xmalloc(size_t size);
 
+extern int verbose;
 void pr_info(const char *fmt, ...);
 void pr_warn(const char *fmt, ...);
 void pr_err(const char *fmt, ...);
