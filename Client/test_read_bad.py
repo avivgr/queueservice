@@ -12,6 +12,7 @@ import getopt
 import os
 import random
 import string
+import time
 import socket
 
 def main():
@@ -39,22 +40,10 @@ def main():
     qsc.connect()
 
     id = qsc.create_queue("myqueue-%d" % (os.getpid(),))
-    count = 0
-    while True:
-        rlen = random.randint(1,1000)
-        rdata = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(rlen))
-        qsc.enqueue(id, rdata)
-        queueid, data, queueentitiyid = qsc.read(id, 10)
-        if data != rdata:
-            print "Fail!!!!"
-            print "Sent: %s" % (rdata,)
-            print "Got: %s" % (data,)
-            assert(False)
-        assert(id == queueid)
-        qsc.dequeue(id, queueentitiyid)
-        count = count + 1
-        if count % 100 == 0:
-            print "Exchanged %d messages." % (count,)
+    queueid, data, queueentitiyid = qsc.read(id, 100)
+    print queueentitiyid
+    print data
+        
 
 if __name__ == "__main__":
     main()

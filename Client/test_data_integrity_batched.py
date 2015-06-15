@@ -12,6 +12,7 @@ import getopt
 import os
 import random
 import string
+import socket
 
 def main():
     address = "127.0.0.1"
