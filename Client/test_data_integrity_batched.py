@@ -1,9 +1,11 @@
 __author__ = 'Aviv Greenberg'
-import QueueServiceClient
+import queueservice.client as client
 
-"""Module docstring.
+"""
+Data integrity test
 
-This serves as a long usage message.
+This test generates batches of random messages (random size, random data) -
+it then enqueue them, dequeues them (in a batch) - and compares the data.
 """
 import sys
 import getopt
@@ -27,15 +29,17 @@ def main():
         if o in ("-h", "--help"):
             print __doc__
             sys.exit(0)
-        elif o in ("-a", "--address"):
-            address = a
-        elif o in ("-p", "--port"):
-            port = a
+        elif o in ("-a",):
+            address = socket.gethostbyname(a)
+        elif o in ("-p",):
+            port = int(a)
 
-    qsc = QueueServiceClient.QueueServiceClient(address, port)
+    qsc = client.QueueServiceClient(address, port)
     qsc.connect()
-    id = qsc.create_queue("myqueue-%d" % (os.getpid(),))
 
+    id = qsc.create_queue("myqueue-%d" % (os.getpid(),))
+    count = 0
+    bcount = 0
     while True:
         # send a batch of random enqueues
         rbatch = random.randint(5,200)
@@ -55,6 +59,10 @@ def main():
                 assert(False)
             assert(id == queueid)
             qsc.dequeue(id, queueentitiyid)
+        count = count + rbatch
+        bcount = bcount + 1
+        if bcount % 10 == 0:
+            print "Exchanged %d messages." % (count,)
 
 if __name__ == "__main__":
     main()

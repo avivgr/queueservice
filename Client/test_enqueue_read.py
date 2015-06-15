@@ -1,12 +1,14 @@
 __author__ = 'Aviv Greenberg'
-import QueueServiceClient
+import queueservice.client as client
 
-"""Module docstring.
+"""
+test enqueue
 
-This serves as a long usage message.
+This is a very simple test - creates a queue, enqueue and dequeue one item.
 """
 import sys
 import getopt
+import socket
 
 def main():
     address = "127.0.0.1"
@@ -24,14 +26,17 @@ def main():
         if o in ("-h", "--help"):
             print __doc__
             sys.exit(0)
-        elif o in ("-a", "--address"):
-            address = a
-        elif o in ("-p", "--port"):
-            port = a
+        elif o in ("-a",):
+            address = socket.gethostbyname(a)
+        elif o in ("-p",):
+            port = int(a)
 
-    qsc = QueueServiceClient.QueueServiceClient(address, port)
+    qsc = client.QueueServiceClient(address, port)
     qsc.connect()
+
+    # Create a queue
     id = qsc.create_queue("myqueue")
+    # Enqueue one item
     qsc.enqueue(id, "test123")
     queueid, data, queueentitiyid = qsc.read(id, 10)
     print data
