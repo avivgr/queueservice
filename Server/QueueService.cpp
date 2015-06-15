@@ -121,15 +121,22 @@ ReadResponse QueueService::read(std::string queueid, uint32_t timeout)
 {
 	std::map<std::string, Queue *>::iterator it;
 	ReadResponse resp;
+	bool found = false;
 
 	uv_rwlock_rdlock(&m_lock);
 	it = m_idToQ.find(queueid);
 	if (it != m_idToQ.end()) {
 		Queue *q = it->second;
 		resp = q->read(timeout);
+		found = true;
 	}
 	uv_rwlock_rdunlock(&m_lock);
 
+	if (!found) {
+		resp.set_data(NULL, 0);
+		resp.set_queueentitiyid("-1");
+		resp.set_queueid("-1");
+	}
 	return resp;
 }
 
