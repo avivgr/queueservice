@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef WIN32
+#include <unistd.h>  /* getopt */
+#endif
 
 #if defined(NDEBUG)
 # define ASSERT(exp)
