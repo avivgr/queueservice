@@ -46,7 +46,6 @@ typedef struct {
 		uv_stream_t stream;
 		uv_tcp_t tcp;
 	} handle;
-	uv_timer_t timer_handle;
 	uv_write_t write_req;
 	uv_req_t req;
 	/* req buffer */
@@ -313,27 +312,8 @@ static void conn_close_done(uv_handle_t *handle)
 
 static void conn_close(conn *c) 
 {
-	c->timer_handle.data = c;
 	c->handle.handle.data = c;
 	uv_close(&c->handle.handle, conn_close_done);
-	uv_close((uv_handle_t *)&c->timer_handle, conn_close_done);
-}
-
-static void conn_timer_expire(uv_timer_t *handle)
-{
-	conn *c;
-
-	c = CONTAINER_OF(handle, conn, timer_handle);
-	c->result = UV_ETIMEDOUT;
-//	do_next(c->client);
-}
-
-static void conn_timer_reset(conn *c)
-{
-	CHECK(0 == uv_timer_start(&c->timer_handle,
-		conn_timer_expire,
-		c->client->sx->idle_timeout,
-		0));
 }
 
 static void conn_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf)
@@ -366,7 +346,6 @@ static void conn_read_done(uv_stream_t *handle,
 static void conn_read(conn *c)
 {
 	CHECK(0 == uv_read_start(&c->handle.stream, conn_alloc, conn_read_done));
-	conn_timer_reset(c);
 }
 
 static void conn_write_done(uv_write_t *req, int status)
@@ -394,7 +373,6 @@ static void conn_write(conn *c, const void *data, unsigned int len)
 		&buf,
 		1,
 		conn_write_done));
-	conn_timer_reset(c);
 }
 
 void client_finish_init(server_ctx *sx, client_ctx *cx)
@@ -409,7 +387,6 @@ void client_finish_init(server_ctx *sx, client_ctx *cx)
 	incoming->result = 0;
 	incoming->offset = 0;
 	incoming->req_size = 0;
-	CHECK(0 == uv_timer_init(sx->loop, &incoming->timer_handle));
 
 	/* Wait for the initial packet. */
 	conn_read(incoming);
