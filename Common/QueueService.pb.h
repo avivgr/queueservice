@@ -95,8 +95,9 @@ inline bool Response_RespType_Parse(
 }
 enum Status {
   SUCCESS = 0,
-  NO_MEM = 1,
-  BUSY = 2
+  NOTFOUND = 1,
+  NO_MEM = 2,
+  BUSY = 3
 };
 bool Status_IsValid(int value);
 const Status Status_MIN = SUCCESS;

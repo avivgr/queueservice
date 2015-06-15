@@ -200,9 +200,9 @@ static void process_request_work_cb(uv_work_t *req)
 		pr_info("DEQUEUE");
 		{
 			DequeueResponse *dequeue = new DequeueResponse();
-			cx->sx->qs->dequeue(r.dequeue().queueid(),
+			bool ret = cx->sx->qs->dequeue(r.dequeue().queueid(),
 				r.dequeue().queueentitiyid());
-			dequeue->set_status(SUCCESS);
+			dequeue->set_status(ret ? SUCCESS : NOTFOUND);
 			resp.set_type(Response::DEQUEUE);
 			resp.set_allocated_dequeue(dequeue);
 		}

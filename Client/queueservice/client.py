@@ -43,7 +43,7 @@ class QueueServiceClient:
 
     def _perform(self, message):
         """ Send a serialized message (protobuf Message interface)
-        to a socket, prepended by its length packed in 4
+        to a socket, prepended by its length packed in 2
         bytes (big endian).
         """
         self._send_req(message)

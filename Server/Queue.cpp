@@ -1,6 +1,5 @@
 #include "Queue.h"
 
-
 Queue::Queue(std::string &queueid, std::string &name)
 	: m_queueid(queueid), m_name(name)
 {
@@ -66,10 +65,11 @@ const ReadResponse Queue::read(uint32_t timeout)
 	return response;
 }
 
-DequeueResponse Queue::dequeue(const std::string &QueueEntityId)
+bool Queue::dequeue(const std::string &QueueEntityId)
 {
 	std::map<std::string, Element *>::iterator it;
 	Element *e = NULL;
+	bool ret = false;
 
 	uv_mutex_lock(&m_readlock);
 	it = m_read.find(QueueEntityId);
@@ -80,10 +80,11 @@ DequeueResponse Queue::dequeue(const std::string &QueueEntityId)
 	uv_mutex_unlock(&m_readlock);
 
 	if (e != NULL) {
+		ret = true;
 		delete e;
 	}
 
-	return DequeueResponse();
+	return ret;
 }
 
 void Queue::timer_expire_cb()

@@ -416,8 +416,9 @@ void protobuf_AddDesc_QueueService_2eproto() {
     "\006 \001(\0132\r.ReadResponse\022!\n\007dequeue\030\007 \001(\0132\020."
     "DequeueResponse\"^\n\010RespType\022\020\n\014CREATE_QU"
     "EUE\020\001\022\r\n\tGET_QUEUE\020\002\022\r\n\tDEL_QUEUE\020\003\022\013\n\007E"
-    "NQUEUE\020\004\022\010\n\004READ\020\005\022\013\n\007DEQUEUE\020\006*+\n\006Statu"
-    "s\022\013\n\007SUCCESS\020\000\022\n\n\006NO_MEM\020\001\022\010\n\004BUSY\020\002", 1316);
+    "NQUEUE\020\004\022\010\n\004READ\020\005\022\013\n\007DEQUEUE\020\006*9\n\006Statu"
+    "s\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\n\n\006NO_MEM\020\002"
+    "\022\010\n\004BUSY\020\003", 1330);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "QueueService.proto", &protobuf_RegisterTypes);
   CreateQueueRequest::default_instance_ = new CreateQueueRequest();
@@ -466,6 +467,7 @@ bool Status_IsValid(int value) {
     case 0:
     case 1:
     case 2:
+    case 3:
       return true;
     default:
       return false;

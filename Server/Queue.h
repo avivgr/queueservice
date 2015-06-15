@@ -72,6 +72,6 @@ public:
 
 	// Dequeue the object with the given QueueEntityId.
 	// A dequeue permanently removes the object from the queue.
-	virtual DequeueResponse dequeue(const std::string &QueueEntityId);
+	virtual bool dequeue(const std::string &QueueEntityId);
 };
 

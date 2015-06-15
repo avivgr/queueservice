@@ -31,6 +31,6 @@ public:
 	virtual void DeleteQueue(std::string queueid);
 	virtual void enqueue(std::string queueid, const char *object, size_t len);
 	virtual ReadResponse read(std::string queueid, uint32_t timeout);
-	virtual DequeueResponse dequeue(std::string queueid, const std::string &QueueEntityId);
+	virtual bool dequeue(std::string queueid, const std::string &QueueEntityId);
 };
 

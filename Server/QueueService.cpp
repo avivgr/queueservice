@@ -128,18 +128,18 @@ ReadResponse QueueService::read(std::string queueid, uint32_t timeout)
 	return resp;
 }
 
-DequeueResponse QueueService::dequeue(std::string queueid, const std::string &QueueEntityId)
+bool QueueService::dequeue(std::string queueid, const std::string &QueueEntityId)
 {
 	std::map<std::string, Queue *>::iterator it;
-	DequeueResponse resp;
+	bool ret = false;
 
 	uv_rwlock_rdlock(&m_lock);
 	it = m_idToQ.find(queueid);
 	if (it != m_idToQ.end()) {
 		Queue *q = it->second;
-		resp = q->dequeue(QueueEntityId);
+		ret = q->dequeue(QueueEntityId);
 	}
 	uv_rwlock_rdunlock(&m_lock);
 
-	return resp;
+	return ret;
 }
