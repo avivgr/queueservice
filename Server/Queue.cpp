@@ -9,6 +9,19 @@ Queue::Queue(std::string &queueid, std::string &name)
 
 Queue::~Queue()
 {
+	/* Empty the queue, and the read hashmap.
+	   Since the timer cb grabs locks in certain
+	   order, make sure to follow the same to avoid deadlock
+	*/
+	uv_mutex_lock(&m_readlock);
+	uv_mutex_lock(&m_lock);
+	while (!m_queue.empty()) {
+		m_queue.pop_front();
+	}
+	m_read.clear();
+	uv_mutex_unlock(&m_lock);
+	uv_mutex_unlock(&m_readlock);
+
 	uv_mutex_destroy(&m_lock);
 	uv_mutex_destroy(&m_readlock);
 }
