@@ -591,6 +591,7 @@ static void usage(char *progname) {
 		"  -b <hostname|address>  Bind to this address or hostname.\n"
 		"                         Default: \"0.0.0.0\"\n"
 		"  -h                     Show this help message.\n"
+		"  -v                     Verbose output.\n"
 		"  -p <port>              Bind to this port number.  Default: 1080\n"
 		"",
 		progname);
@@ -606,7 +607,6 @@ static void parse_opts(server_config *cf, int argc, char **argv)
 		case 'H':
 			cf->bind_host = optarg;
 			break;
-
 		case 'p':
 			if (1 != sscanf(optarg, "%hu", &cf->bind_port)) {
 				pr_err("bad port number: %s", optarg);
@@ -616,7 +616,6 @@ static void parse_opts(server_config *cf, int argc, char **argv)
 		case 'v':
 			verbose = 1;
 			break;
-
 		default:
 			usage(argv[0]);
 		}
