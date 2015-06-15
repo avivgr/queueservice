@@ -4,11 +4,42 @@ QueueService::QueueService()
 {
 	m_id = 1;
 	uv_rwlock_init(&m_lock);
+	m_exitThread = false;
+	uv_thread_create(&m_thread, SThreadMain, this);
 }
 
 QueueService::~QueueService()
 {
+	m_exitThread = true;
+	uv_thread_join(&m_thread);
 	uv_rwlock_destroy(&m_lock);
+}
+
+void QueueService::ThreadMain()
+{
+	std::map<std::string, Queue *>::iterator it;
+
+	while (!m_exitThread)
+	{
+		uv_rwlock_rdlock(&m_lock);
+		for (it = m_idToQ.begin(); it != m_idToQ.end(); ++it)
+		{
+			Queue *q = it->second;
+			q->timer_expire_cb();
+		}
+		uv_rwlock_rdunlock(&m_lock);
+#ifdef WIN32
+		Sleep(1000);
+#else
+		sleep(1);
+#endif
+	}
+}
+
+void QueueService::SThreadMain(void* arg)
+{
+	QueueService *_this = (QueueService *)arg;
+	_this->ThreadMain();
 }
 
 std::string QueueService::CreateQueue(std::string name)

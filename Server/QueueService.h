@@ -17,6 +17,11 @@ class QueueService
 	std::map<std::string, std::string> m_nameToId;
 	std::map<std::string, Queue *> m_idToQ;
 	uint32_t m_id;
+	uv_thread_t m_thread;
+	bool m_exitThread;
+
+	virtual void ThreadMain();
+	static void SThreadMain(void* arg);
 
 public:
 	QueueService();
