@@ -37,39 +37,9 @@ typedef struct {
 	QueueService *qs;
 } server_ctx;
 
-/* A connection is modeled as an abstraction on top of two simple state
-* machines, one for reading and one for writing.  Either state machine
-* is, when active, in one of three states: busy, done or stop; the fourth
-* and final state, dead, is an end state and only relevant when shutting
-* down the connection.  A short overview:
-*
-*                          busy                  done           stop
-*  ----------|---------------------------|--------------------|------|
-*  readable  | waiting for incoming data | have incoming data | idle |
-*  writable  | busy writing out data     | completed write    | idle |
-*
-* We could remove the done state from the writable state machine. For our
-* purposes, it's functionally equivalent to the stop state.
-*
-* An interesting deviation from libuv's I/O model is that reads are discrete
-* rather than continuous events.  In layman's terms, when a read operation
-* completes, the connection stops reading until further notice.
-*
-* The rationale for this approach is that we have to wait until the request
-* completes (and response is sent) before we can reuse the read buffer.
-*/
-enum conn_state {
-	c_busy,  /* Busy; waiting for incoming data or for a write to complete. */
-	c_done,  /* Done; read incoming data or write finished. */
-	c_stop,  /* Stopped. */
-	c_dead
-};
-
 struct client_ctx;
 typedef struct {
 	struct client_ctx *client;  /* Backlink to owning client context. */
-	conn_state rdstate;
-	conn_state wrstate;
 	ssize_t result;
 	union {
 		uv_handle_t handle;
@@ -250,9 +220,6 @@ static int do_read_request(client_ctx *cx)
 	size_t size;
 
 	incoming = &cx->incoming;
-	//ASSERT(incoming->rdstate == c_done);
-//	ASSERT(incoming->wrstate == c_stop);
-	incoming->rdstate = c_stop;
 
 	if (incoming->result < 0) {
 		pr_err("read error: %s", uv_strerror(incoming->result));
@@ -278,9 +245,6 @@ static int do_read_size(client_ctx *cx)
 	size_t size;
 	
 	incoming = &cx->incoming;
-	ASSERT(incoming->rdstate == c_done);
-	//ASSERT(incoming->wrstate == c_stop);
-	incoming->rdstate = c_stop;
 
 	if (incoming->result < 0) {
 		pr_err("read error: %s", uv_strerror(incoming->result));
@@ -349,10 +313,6 @@ static void conn_close_done(uv_handle_t *handle)
 
 static void conn_close(conn *c) 
 {
-	ASSERT(c->rdstate != c_dead);
-	ASSERT(c->wrstate != c_dead);
-	c->rdstate = c_dead;
-	c->wrstate = c_dead;
 	c->timer_handle.data = c;
 	c->handle.handle.data = c;
 	uv_close(&c->handle.handle, conn_close_done);
@@ -381,7 +341,6 @@ static void conn_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf)
 	conn *c;
 
 	c = CONTAINER_OF(handle, conn, handle);
-	ASSERT(c->rdstate == c_busy);
 	ASSERT(c->offset < sizeof(c->buf));
 	buf->base = c->buf + c->offset;
 	buf->len = sizeof(c->buf) - c->offset;
@@ -395,8 +354,7 @@ static void conn_read_done(uv_stream_t *handle,
 
 	c = CONTAINER_OF(handle, conn, handle);
 	ASSERT(c->buf == buf->base);
-	ASSERT(c->rdstate == c_busy);
-	c->rdstate = c_done;
+
 	c->result = nread;
 	if (nread > 0)
 		c->offset += nread;
@@ -407,9 +365,7 @@ static void conn_read_done(uv_stream_t *handle,
 
 static void conn_read(conn *c)
 {
-	ASSERT(c->rdstate == c_stop);
 	CHECK(0 == uv_read_start(&c->handle.stream, conn_alloc, conn_read_done));
-	c->rdstate = c_busy;
 	conn_timer_reset(c);
 }
 
@@ -422,8 +378,6 @@ static void conn_write_done(uv_write_t *req, int status)
 	}
 
 	c = CONTAINER_OF(req, conn, write_req);
-	ASSERT(c->wrstate == c_busy);
-	c->wrstate = c_done;
 	c->result = status;
 	do_next(c->client);
 }
@@ -432,12 +386,6 @@ static void conn_write(conn *c, const void *data, unsigned int len)
 {
 	uv_buf_t buf;
 
-	ASSERT(c->wrstate == c_stop || c->wrstate == c_done);
-	c->wrstate = c_busy;
-
-	/* It's okay to cast away constness here, uv_write() won't modify the
-	* memory.
-	*/
 	buf.base = (char *)data;
 	buf.len = len;
 
@@ -459,8 +407,6 @@ void client_finish_init(server_ctx *sx, client_ctx *cx)
 	incoming = &cx->incoming;	
 	incoming->client = cx;
 	incoming->result = 0;
-	incoming->rdstate = c_stop;
-	incoming->wrstate = c_stop;
 	incoming->offset = 0;
 	incoming->req_size = 0;
 	CHECK(0 == uv_timer_init(sx->loop, &incoming->timer_handle));
