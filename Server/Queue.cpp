@@ -63,6 +63,7 @@ const ReadResponse Queue::read(uint32_t timeout)
 	}	
 	uv_mutex_unlock(&m_lock);
 
+	/* No entry - exit */
 	if (e == NULL) {
 		response.set_data(NULL, 0);
 		response.set_queueentitiyid("-1");
@@ -70,6 +71,7 @@ const ReadResponse Queue::read(uint32_t timeout)
 		return response;
 	}
 
+	/* prepare new queue element id, and expire entry */
 	time_t expire = time(0) + timeout;
 	std::stringstream elementqueueid;
 	elementqueueid << expire << "-" << e;
@@ -77,6 +79,7 @@ const ReadResponse Queue::read(uint32_t timeout)
 
 	ExpirationEntry re(expire, elementqueueid.str());
 
+	/* Save in map and expiry queue */
 	uv_mutex_lock(&m_readlock);
 	m_read[re.elementid()] = e;
 	m_expire.push(re);	
@@ -95,6 +98,7 @@ bool Queue::dequeue(const std::string &QueueEntityId)
 	Element *e = NULL;
 	bool ret = false;
 
+	/* Find the QueueEntityId in the read map */
 	uv_mutex_lock(&m_readlock);
 	it = m_read.find(QueueEntityId);
 	if (it != m_read.end()) {
@@ -111,6 +115,11 @@ bool Queue::dequeue(const std::string &QueueEntityId)
 	return ret;
 }
 
+/*
+	timer callback - this routine is called every second.
+	here we check for expired entries using the priority
+	queue - and return them to the main fifo.
+*/
 void Queue::timer_expire_cb()
 {
 	time_t now = time(0);
@@ -120,6 +129,7 @@ void Queue::timer_expire_cb()
 	uv_mutex_lock(&m_readlock);
 	while (!m_expire.empty()) {
 		ExpirationEntry re = m_expire.top();
+		/* Expire now ?*/
 		if (now < re.expire())
 			break;		
 		m_expire.pop();
@@ -127,9 +137,9 @@ void Queue::timer_expire_cb()
 		if (it != m_read.end()) {
 			e = it->second;
 			m_read.erase(it);
-			/* Reinsert to queue */
+			/* Reinsert to queue - will be read again later */
 			uv_mutex_lock(&m_lock);
-			m_queue.push_front(e);
+			m_queue.push_front(e);	/* yes in the front ! */
 			uv_mutex_unlock(&m_lock);
 		}
 	}

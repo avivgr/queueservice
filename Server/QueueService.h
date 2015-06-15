@@ -16,7 +16,7 @@
 */
 class QueueService
 {
-	uv_rwlock_t m_lock;		/* all queue operations are done with read lock held */
+	uv_rwlock_t m_lock;		/* all regular queue operations are done with read lock held */
 	std::map<std::string, std::string> m_nameToId;
 	std::map<std::string, Queue *> m_idToQ;
 	uint32_t m_id;

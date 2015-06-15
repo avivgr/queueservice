@@ -16,6 +16,9 @@ QueueService::~QueueService()
 	uv_rwlock_destroy(&m_lock);
 }
 
+/* this is an internal thread, which job is simply
+	to call queue->timer_expire_cb() for each queue every second.
+*/
 void QueueService::ThreadMain()
 {
 	std::map<std::string, Queue *>::iterator it;
@@ -87,6 +90,7 @@ void QueueService::DeleteQueue(std::string queueid)
 	std::map<std::string, std::string>::iterator it;
 	std::map<std::string, Queue *>::iterator it2;
 
+	/* remove id and name from both maps */
 	uv_rwlock_wrlock(&m_lock);
 	it2 = m_idToQ.find(queueid);
 	if (it2 != m_idToQ.end()) {
