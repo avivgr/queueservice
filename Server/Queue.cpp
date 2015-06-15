@@ -52,6 +52,7 @@ void Queue::enqueue(const char *object, size_t len)
 
 const ReadResponse Queue::read(uint32_t timeout)
 {
+	ReadResponse response;
 	Element *e = NULL;
 
 	/* first - dequeue an element from the list */
@@ -61,6 +62,13 @@ const ReadResponse Queue::read(uint32_t timeout)
 		m_queue.pop_front();
 	}	
 	uv_mutex_unlock(&m_lock);
+
+	if (e == NULL) {
+		response.set_data(NULL, 0);
+		response.set_queueentitiyid("-1");
+		response.set_queueid(m_queueid);
+		return response;
+	}
 
 	time_t expire = time(0) + timeout;
 	std::stringstream elementqueueid;
@@ -74,11 +82,10 @@ const ReadResponse Queue::read(uint32_t timeout)
 	m_expire.push(re);	
 	uv_mutex_unlock(&m_readlock);
 
-	ReadResponse response;
 	response.set_data(e->data(), e->size());
 	response.set_queueentitiyid(re.elementid());
 	response.set_queueid(m_queueid);
-	
+
 	return response;
 }
 
