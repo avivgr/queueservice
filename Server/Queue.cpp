@@ -12,7 +12,7 @@ Queue::~Queue()
 {
 	/* Empty the queue, and the read hashmap.
 	   Since the timer cb grabs locks in certain
-	   order, make sure to follow the same to avoid deadlock
+	   order, make sure to follow the same order to avoid deadlocks
 	*/
 	uv_mutex_lock(&m_readlock);
 	uv_mutex_lock(&m_lock);
@@ -29,6 +29,7 @@ Queue::~Queue()
 
 Queue::Element::Element(const char *object, size_t len)
 {
+	/* allocate new data array and copy object */
 	m_data = new char[len];
 	m_size = len;
 	memcpy(m_data, object, len);
@@ -36,6 +37,7 @@ Queue::Element::Element(const char *object, size_t len)
 
 Queue::Element::~Element()
 {
+	/* free data */
 	delete[] m_data;
 }
 
@@ -52,6 +54,7 @@ const ReadResponse Queue::read(uint32_t timeout)
 {
 	Element *e = NULL;
 
+	/* first - dequeue an element from the list */
 	uv_mutex_lock(&m_lock);
 	if (!m_queue.empty()) {
 		e = m_queue.front();

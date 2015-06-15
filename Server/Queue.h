@@ -12,6 +12,7 @@
 
 class Queue
 {
+	/* Internal class - reqresents a fifo-ish element */
 	class Element
 	{
 		char  *m_data;
@@ -24,6 +25,7 @@ class Queue
 		size_t size() { return m_size; }
 	};
 
+	/* Internal class - when shoud a read element expire ? */
 	class ExpirationEntry
 	{
 		time_t m_expire;
@@ -42,14 +44,12 @@ class Queue
 
 	std::string m_queueid;
 	std::string m_name;
-	uv_mutex_t m_lock;
-	size_t m_max_mem;
-	size_t m_current_mem;
+	uv_mutex_t m_lock;		/* this is a lock for the m_queue list */
 	std::list<Element*> m_queue;
 
-	uv_mutex_t m_readlock;
-	std::priority_queue<ExpirationEntry> m_expire;
-	std::map<std::string, Element *> m_read;
+	uv_mutex_t m_readlock;  /* this is a lock for the read hashmap and expire priority queue */
+	std::priority_queue<ExpirationEntry> m_expire; /* which currently read element should expire next ? */
+	std::map<std::string, Element *> m_read;	/* store elements which are read - but not dequeuent or expired */
 
 public:
 	Queue(std::string &queueid, std::string &name);

@@ -11,9 +11,12 @@
 #include "../Common/QueueService.pb.h"
 #include "Queue.h"
 
+/*
+	Queue Service - is a thread safe container for queues
+*/
 class QueueService
 {
-	uv_rwlock_t m_lock;
+	uv_rwlock_t m_lock;		/* all queue operations are done with read lock held */
 	std::map<std::string, std::string> m_nameToId;
 	std::map<std::string, Queue *> m_idToQ;
 	uint32_t m_id;
