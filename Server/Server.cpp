@@ -358,12 +358,13 @@ static void conn_read_done(uv_stream_t *handle,
 {
 	conn *c;
 
-	c = CONTAINER_OF(handle, conn, handle);
-	ASSERT(c->buf == buf->base);
+	c = CONTAINER_OF(handle, conn, handle);	
 
 	c->result = nread;
-	if (nread > 0)
+	if (nread > 0) {
+		ASSERT(c->buf == buf->base);
 		c->offset += nread;
+	}
 
 	uv_read_stop(&c->handle.stream);
 	do_next(c->client);
