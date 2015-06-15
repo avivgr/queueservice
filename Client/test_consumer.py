@@ -43,11 +43,10 @@ def main():
 
     count = 0
     while True:
-        rlen = random.randint(1,1000)
-        rdata = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(rlen))
         queueid, data, queueentitiyid = qsc.read(id, 10)
         qsc.dequeue(id, queueentitiyid)
-        count = count + 1
+        if len(data) > 0:
+            count = count + 1
         if count % 100 == 0:
             print "Exchanged %d messages." % (count,)
 
