@@ -51,8 +51,7 @@ typedef struct {
 	/* req buffer */
 	uint16_t req_size; /* total req size */
 
-	/* response buffer */
-	uint16_t resp_size;
+	/* response buffer */	
 	char resp_buf[2048];
 
 	int offset;
