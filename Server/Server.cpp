@@ -46,6 +46,7 @@ typedef struct {
 		uv_stream_t stream;
 		uv_tcp_t tcp;
 	} handle;
+	uv_work_t work;
 	uv_write_t write_req;
 	uv_req_t req;
 	/* req buffer */
@@ -53,6 +54,7 @@ typedef struct {
 
 	/* response buffer */	
 	char resp_buf[2048];
+	uint16_t resp_size; /* total response size */
 
 	int offset;
 	char buf[2048];
@@ -104,9 +106,12 @@ static void buff_pull(conn *c)
 	c->offset -= free;
 }
 
+/* Forward declarations */
 static void conn_close(conn *c);
 static void conn_read(conn *c);
 static void conn_write(conn *c, const void *data, unsigned int len);
+static void do_next(client_ctx *cx);
+
 static int do_kill(client_ctx *cx) 
 {
 	conn_close(&cx->incoming);
@@ -120,15 +125,22 @@ static int do_almost_dead(client_ctx *cx)
 	return cx->state + 1;  /* Another finalizer completed. */
 }
 
-static int do_process_request(client_ctx *cx)
+static void process_request_work_done_cb(uv_work_t* req, int status)
+{
+	conn *incoming = CONTAINER_OF(req, conn, work);
+	client_ctx *cx = incoming->client;
+
+	do_next(cx);
+}
+
+static void process_request_work_cb(uv_work_t *req)
 {
 	conn *incoming;
 	Request r;
 	Response resp;
 
-	incoming = &cx->incoming;
-	//ASSERT(incoming->rdstate == c_done);
-//	ASSERT(incoming->wrstate == c_stop);
+	incoming = CONTAINER_OF(req, conn, work);
+	client_ctx *cx = incoming->client;
 
 	r.ParseFromArray(incoming->buf + 2, incoming->req_size);
 
@@ -143,7 +155,7 @@ static int do_process_request(client_ctx *cx)
 			resp.set_type(Response::CREATE_QUEUE);
 			resp.set_allocated_createqueue(create);
 		}
-		break;		
+		break;
 	case Request::GET_QUEUE:
 		pr_info("GET_QUEUE");
 		{
@@ -179,7 +191,7 @@ static int do_process_request(client_ctx *cx)
 		pr_info("READ");
 		{
 			ReadResponse *read = new ReadResponse();
-			*read = cx->sx->qs->read(r.read().queueid(), r.read().timeout());			
+			*read = cx->sx->qs->read(r.read().queueid(), r.read().timeout());
 			resp.set_type(Response::READ);
 			resp.set_allocated_read(read);
 		}
@@ -198,17 +210,33 @@ static int do_process_request(client_ctx *cx)
 	}
 
 	*((uint16_t *)(&incoming->resp_buf)) = htons(resp.ByteSize());
-	resp.SerializeToArray(&incoming->resp_buf[2], sizeof(incoming->resp_buf)-2);
-	conn_write(incoming, incoming->resp_buf, resp.ByteSize() + 2);
+	resp.SerializeToArray(&incoming->resp_buf[2], sizeof(incoming->resp_buf) - 2);
+	incoming->resp_size = resp.ByteSize() + 2;
+}
+
+static int do_process_request(client_ctx *cx)
+{
+
+	CHECK(0 ==
+		uv_queue_work(cx->sx->loop, 
+		&cx->incoming.work, process_request_work_cb,
+		process_request_work_done_cb));
 	
-	return s_write_response;
+	return s_process_request;
 }
 
 static int do_write_response(client_ctx *cx)
 {
+	conn *c = &cx->incoming;
+
+	conn_write(c, c->resp_buf, c->resp_size);
+
 	buff_pull(&cx->incoming);
-	cx->incoming.req_size = 0;
-	conn_read(&cx->incoming);
+	c->req_size = 0;
+	c->resp_size = 0;
+
+	conn_read(c);
+
 	return s_read_size;
 }
 
@@ -280,7 +308,6 @@ static void do_next(client_ctx *cx)
 		new_state = do_read_request(cx);
 		break;
 	case s_process_request:
-		break;
 	case s_write_response:
 		new_state = do_write_response(cx);
 		break;
@@ -344,7 +371,8 @@ static void conn_read_done(uv_stream_t *handle,
 
 static void conn_read(conn *c)
 {
-	CHECK(0 == uv_read_start(&c->handle.stream, conn_alloc, conn_read_done));
+	int ret = uv_read_start(&c->handle.stream, conn_alloc, conn_read_done);
+	CHECK(ret == 0 || ret == UV_EALREADY);
 }
 
 static void conn_write_done(uv_write_t *req, int status)
